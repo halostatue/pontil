@@ -1,0 +1,80 @@
+name: Gleam Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Gleam ${{ matrix.gleam }} OTP ${{ matrix.otp }} / Node ${{ matrix.node}}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        gleam:
+          - '1.14'
+          - '1.15'
+        otp:
+          - 27
+          - 28
+        node:
+          - 24.x
+
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            builds.hex.pm:443
+            github.com:443
+            registry.npmjs.org:443
+            release-assets.githubusercontent.com:443
+            repo.hex.pm:443
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
+        id: beam
+        with:
+          otp-version: ${{ matrix.otp }}
+          gleam-version: ${{ matrix.gleam }}
+          rebar3-version: "3"
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        id: node
+        with:
+          node-version: ${{ matrix.node }}
+
+      - uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        with:
+          key: builds@gleam-${{ steps.beam.outputs.gleam-version }}-otp-${{ steps.beam.outputs.otp-version }}-node-${{ steps.node.outputs.node-version }}-hash-${{ hashFiles('manifest.toml') }}
+          path: |
+            build
+
+      - uses: extractions/setup-just@f8a3cce218d9f83db3a2ecd90e41ac3de6cdfd9b # v3
+
+      - run: gleam deps download
+      - run: gleam format --check src test
+      - run: gleam test --target erlang
+      - run: gleam test --target javascript
+      - run: gleam run -m glinter
