@@ -77,4 +77,5 @@ jobs:
       - run: gleam format --check src test
       - run: gleam test --target erlang
       - run: gleam test --target javascript
+      - run: just platform-info
       - run: gleam run -m glinter
