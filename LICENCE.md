@@ -1,10 +1,17 @@
 # Licence
 
-- SPDX-Licence-Identifier: [Apache-2.0][apache-2]
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
-Puntil is copyright © 2026 Austin Ziegler and is licensed under the
-[Apache License, version 2.0](licences/APACHE-2.0.txt). Portions of Enviable are
-adapted from the `System` module in [Elixir][elixir].
+The Pontil project is copyright © 2026 Austin Ziegler and is licensed under the
+[Apache License, version 2.0](licences/APACHE-2.0.txt).
+
+Portions of `pontil_platform` are based on [DitherWither/platform][platform],
+copyright © 2024 by DitherWither.
+
+Pontil is based on [actions/toolkit][gha-toolkit], copyright 2019 GitHub and
+contributors.
+
+> SPDX Licence Description: [Apache-2.0][apache-2]
 
 ## Developer Certificate of Origin
 
@@ -26,4 +33,6 @@ git commit --signoff
 
 [apache-2]: https://spdx.org/licenses/Apache-2.0.html
 [elixir]: https://github.com/elixir-lang/elixir
+[gha-toolkit]: https://github.com/actions/toolkit
+[platform]: https://github.com/ditherwither/platform
 [trailer]: https://git-scm.com/docs/git-interpret-trailers

@@ -1,0 +1,44 @@
+name = "pontil_platform"
+version = "1.0.0"
+description = "Cross-runtime platform detection for Gleam"
+licences = ["Apache-2.0"]
+gleam = ">= 1.14.0"
+
+[repository]
+type = "github"
+user = "halostatue"
+repo = "pontil"
+path = "pontil_platform"
+tag_prefix = "pontil_platform-"
+
+[dependencies]
+gleam_stdlib = ">= 0.44.0 and < 2.0.0"
+shellout = ">= 1.8.0 and < 2.0.0"
+
+[dev-dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
+glinter = ">= 2.15.0 and < 3.0.0"
+
+# The broad permissions for `allow_read` and `allow_run` are required because Deno's
+# permissions model does weird things when interacting with `shellout.where`, used when
+# running a command -- even when a path (`./foo` or `/usr/bin/foo`) has been specified
+# (this may be a bug in shellout).
+#
+# If `allow_read` is not `true`, then prompts will be given for EVERY entry in `$PATH`,
+# except the ones specified -- if it's even possible to be certain where `powershell` or
+# `lsb_release` will be on a given Windows or Linux installation (`sw_vers` is always in
+# `/usr/bin/sw_vers` on macO).
+#
+# If `allow_run` is restricted to `lsb_release`, `powershell`, and `sw_vers`, then there
+# will be info logs:
+#
+#   Info Failed to resolve 'lsb_release' for allow-run: cannot find binary path
+#   Info Failed to resolve 'powershell' for allow-run: cannot find binary path
+#   Info Failed to resolve 'sw_vers' for allow-run: cannot find binary path
+#
+# This is why I don't use Deno, except `deno fmt` is very good at formatting Markdown
+# sensibly.
+[javascript.deno]
+allow_env = ["PATHEXT", "PATH"]
+allow_read = true
+allow_run = true

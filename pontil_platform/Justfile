@@ -1,0 +1,62 @@
+_default:
+    just --list
+
+@test:
+    gleam test --target erlang
+    gleam test --target javascript
+
+@build:
+    gleam build --target erlang
+    gleam build --target javascript
+
+@lint:
+    gleam run -m glinter
+
+@docs:
+    gleam docs build
+
+@docs-open: docs
+    open build/dev/docs/pontil_platform/index.html
+
+platform-info TARGET="all":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    trap 'rm -f src/platform_info.gleam' EXIT
+
+    cat >src/platform_info.gleam <<'EOS'
+    import pontil/platform
+    pub fn main() {
+      echo platform.details()
+    }
+    EOS
+
+    run_target() {
+      local label="$1" target="$2" runtime="${3:-}"
+      printf "==================\n%s Platform Info\n==================\n\n" "$label"
+      if [ -n "$runtime" ]; then
+        gleam run -m platform_info --target "$target" --runtime "$runtime"
+      else
+        gleam run -m platform_info --target "$target"
+      fi
+      echo
+    }
+
+    case "{{ TARGET }}" in
+      all)
+        run_target "BEAM" erlang
+        run_target "node" javascript node
+        run_target "bun" javascript bun
+        run_target "deno" javascript deno
+        ;;
+      erlang|beam)
+        run_target "BEAM" erlang
+        ;;
+      node|bun|deno)
+        run_target "{{ TARGET }}" javascript "{{ TARGET }}"
+        ;;
+      *)
+        echo "Unknown target: {{ TARGET }}"
+        echo "Valid targets: all, erlang, beam, node, bun, deno"
+        exit 1
+        ;;
+    esac

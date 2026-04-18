@@ -1,0 +1,20 @@
+_default:
+    just --list
+
+@test:
+    gleam test
+
+@build:
+    gleam build
+
+@lint:
+    gleam run -m glinter
+
+@choire:
+    gleam run -m choire ..
+
+@docs:
+    gleam docs build
+
+@docs-open: docs
+    open build/dev/docs/pontil/index.html

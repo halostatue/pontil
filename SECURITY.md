@@ -1,4 +1,4 @@
-# puntil Security
+# Pontil Security
 
 ## LLM-Generated Security Report Policy
 
@@ -7,14 +7,16 @@ agents.
 
 ## Supported Versions
 
-Security reports are accepted for the most recent major release with support for
-the previous major version ending immediately.
+Security reports are accepted for the most recent major release of each package
+with support for the previous major version ending immediately.
 
-Puntil supports the two most recent major version of Gleam (currently 1.14 and
-1.15). Puntil is tested on Node 24 and Erlang/OTP versions 27 and 28.
+Pontil supports the two most recent major version of Gleam (currently 1.14 and
+1.15). Pontil projects supporting only JavaScript targets are tested on Node 24.
+Pontil projects supporting Erlang targets are tested against OTP 27 and 28. Some
+functionality may be tested on the latest versions of Bun and Deno.
 
 ## Reporting a Vulnerability
 
 Create a [private vulnerability report][advisory] with GitHub.
 
-[advisory]: https://github.com/halostatue/puntil/security/advisories/new
+[advisory]: https://github.com/halostatue/pontil/security/advisories/new

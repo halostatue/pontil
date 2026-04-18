@@ -1,38 +1,42 @@
-# pontil: Gleaming GitHub Actions
+# pontil
 
-[![Hex.pm][shield-hex]][hexpm] [![Hex Docs][shield-docs]][docs]
-[![Apache 2.0][shield-licence]][licence]
+A Gleam port of GitHub's [actions/toolkit][toolkit] for writing GitHub Actions.
 
-- code :: <https://github.com/halostatue/pontil>
-- issues :: <https://github.com/halostatue/pontil/issues>
+This is a monorepo containing the following packages, each published
+independently to [Hex][hex]:
 
-A Gleam port of GitHub's [actions/toolkit][gha-toolkit], for writing GitHub
-Actions in Gleam.
+| Package                       | Description                              | Targets            |
+| ----------------------------- | ---------------------------------------- | ------------------ |
+| [`pontil`][pontil]            | High-level API for GitHub Actions        | JavaScript         |
+| [`pontil_core`][core]         | Core workflow commands and input parsing | Erlang, JavaScript |
+| [`pontil_platform`][platform] | Runtime, OS, and architecture detection  | Erlang, JavaScript |
+| [`pontil_summary`][summary]   | Job summary builder                      | Erlang, JavaScript |
 
-## Installation
+Most users should depend on `pontil` directly. The sub-packages exist for use
+cases that don't need the full toolkit or need Erlang target support.
+
+## Development
+
+Requires [Gleam][gleam] >= 1.14.0 and [just][just].
 
 ```sh
-gleam add pontil@0
+just dev-start   # Switch to path deps for local development
+just test        # Run all tests
+just lint        # Lint all packages
+just format-check
+just dev-end     # Restore version constraints before publishing
+just dev-check   # Verify no path deps remain (CI gate)
 ```
 
-```gleam
-import pontil
+## Licence
 
-pub fn main() {
-  let name = pontil.get_input("name") // Reads INPUT_NAME
-  pontil.info("Hello, " <> name <> "!")
-}
-```
+[Apache 2.0](./LICENCE.md)
 
-## Semantic Versioning
-
-Pontil follows [Semantic Versioning 2.0][semver].
-
-[gha-toolkit]: https://github.com/actions/toolkit
-[docs]: https://hexdocs.pm/pontil
-[hexpm]: https://hex.pm/package/pontil
-[licence]: https://github.com/halostatue/pontil/blob/main/LICENCE.md
-[semver]: https://semver.org/
-[shield-docs]: https://img.shields.io/badge/hex-docs-lightgreen.svg?style=for-the-badge "Hex Docs"
-[shield-hex]: https://img.shields.io/hexpm/v/pontil?style=for-the-badge "Hex Version"
-[shield-licence]: https://img.shields.io/hexpm/l/pontil?style=for-the-badge&label=licence "Apache 2.0"
+[core]: https://hexdocs.pm/pontil_core
+[gleam]: https://gleam.run
+[hex]: https://hex.pm
+[just]: https://just.systems
+[platform]: https://hexdocs.pm/pontil_platform
+[pontil]: https://hexdocs.pm/pontil
+[summary]: https://hexdocs.pm/pontil_summary
+[toolkit]: https://github.com/actions/toolkit

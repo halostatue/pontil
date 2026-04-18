@@ -1,0 +1,19 @@
+_default:
+    just --list
+
+@test:
+    gleam test --target erlang
+    gleam test --target javascript
+
+@build:
+    gleam build --target erlang
+    gleam build --target javascript
+
+@lint:
+    gleam run -m glinter
+
+@docs:
+    gleam docs build
+
+@docs-open: docs
+    open build/dev/docs/pontil_summary/index.html
