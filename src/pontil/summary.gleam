@@ -9,8 +9,8 @@
 //// Summaries should be built using the builder API, which always starts with
 //// `summary.new()`.
 ////
-//// Use `new` to start a builder, pipe through element functions, then append or
-//// overwrite to the `GITHUB_STEP_SUMMARY` file:
+//// Use `new` to start a builder, pipe through element functions, then append
+//// or overwrite to the `GITHUB_STEP_SUMMARY` file:
 ////
 //// ```gleam
 //// summary.new()
@@ -21,8 +21,8 @@
 ////
 //// ## Tables
 ////
-//// Tables can be built with `new_table` followed by `header_row`, `row`, or `cells`.
-//// Pass the result directly to the `table` function:
+//// Tables can be built with `new_table` followed by `header_row`, `row`, or
+//// `cells`. Pass the result directly to the `table` function:
 ////
 //// ```gleam
 //// summary.new()
@@ -52,8 +52,8 @@
 ////
 //// ## Direct Construction
 ////
-//// It is also possible to build a summary of `List(SummaryElement)` values and pass it
-//// to `append`.
+//// It is also possible to build a summary of `List(SummaryElement)` values and
+//// pass it to `append`.
 ////
 //// ```gleam
 //// [H1("Title"), Raw("Some text")]
@@ -61,15 +61,17 @@
 //// ```
 
 import envoy
+import fio
+import fio/error.{type FioError}
 import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/string
 import pontil/errors.{type PontilError}
-import simplifile
 
-/// A cell in a summary table. It is recommended that cells be created with the `td` and
-/// `th` functions and modified with the `colspan` or `rowspan` functions.
+/// A cell in a summary table. It is recommended that cells be created with the
+/// `td` and `th` functions and modified with the `colspan` or `rowspan`
+/// functions.
 ///
 /// ```gleam
 /// summary.th("Name")
@@ -433,8 +435,8 @@ pub fn to_string(elements: List(SummaryElement)) -> String {
   |> string.join("")
 }
 
-/// Appends summary elements to the `GITHUB_STEP_SUMMARY` file. Works with both builder
-/// pipelines and direct element lists.
+/// Appends summary elements to the `GITHUB_STEP_SUMMARY` file. Works with both
+/// builder pipelines and direct element lists.
 pub fn append(elements: List(SummaryElement)) -> Result(Nil, PontilError) {
   write_buffer(buffer: to_string(elements), overwrite: False)
 }
@@ -465,19 +467,17 @@ fn write_buffer(
     Ok(path) if path != "" ->
       case overwrite {
         True ->
-          simplifile.write(to: path, contents: buffer)
+          fio.write(path, buffer)
           |> map_file_error()
         False ->
-          simplifile.append(to: path, contents: buffer)
+          fio.append(path, buffer)
           |> map_file_error()
       }
     _ -> Error(errors.MissingSummaryEnvVar)
   }
 }
 
-fn map_file_error(
-  result: Result(Nil, simplifile.FileError),
-) -> Result(Nil, PontilError) {
+fn map_file_error(result: Result(Nil, FioError)) -> Result(Nil, PontilError) {
   case result {
     Ok(Nil) -> Ok(Nil)
     Error(e) -> Error(errors.FileError(e))

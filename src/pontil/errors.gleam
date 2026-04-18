@@ -1,9 +1,16 @@
 //// Error types for pontil modules.
 
-import simplifile
+import fio/error
+import gleam/fetch
 
 /// Errors returned by pontil functions.
 pub type PontilError {
+  /// A fetch (HTTP) operation failed.
+  FetchError(error: fetch.FetchError)
+  /// A file system operation failed.
+  FileError(error: error.FioError)
+  /// A file expected at the given path does not exist.
+  FileNotFound(path: String)
   /// A required input was not supplied.
   InputRequired(name: String)
   /// An input value does not meet the YAML 1.2 "Core Schema" boolean specification.
@@ -12,8 +19,6 @@ pub type PontilError {
   MissingEnvVar(name: String)
   /// The GITHUB_STEP_SUMMARY environment variable is missing or empty.
   MissingSummaryEnvVar
-  /// A file expected at the given path does not exist.
-  FileNotFound(path: String)
-  /// A file system operation failed.
-  FileError(error: simplifile.FileError)
+  /// The OIDC token response did not contain a token value.
+  OidcTokenMissing
 }

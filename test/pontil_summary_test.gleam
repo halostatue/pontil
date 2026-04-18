@@ -1,10 +1,10 @@
 import envoy
+import fio
 import gleam/option.{None, Some}
 import pontil/summary.{
   Break, CodeBlock, Details, Eol, H1, H2, H3, H4, H5, H6, Image, Link,
   OrderedList, Quote, Raw, Separator, Table, UnorderedList,
 }
-import simplifile
 
 // --- Direct element rendering ---
 
@@ -278,11 +278,11 @@ pub fn table_builder_th_span_test() {
 pub fn append_test() {
   let dir = setup_temp_dir()
   let file = dir <> "/SUMMARY"
-  let assert Ok(Nil) = simplifile.write(to: file, contents: "existing\n")
+  let assert Ok(Nil) = fio.write(file, "existing\n")
   envoy.set("GITHUB_STEP_SUMMARY", file)
 
   let assert Ok(Nil) = summary.append([Raw("new")])
-  let assert Ok("existing\nnew") = simplifile.read(file)
+  let assert Ok("existing\nnew") = fio.read(file)
 
   cleanup(dir)
 }
@@ -290,7 +290,7 @@ pub fn append_test() {
 pub fn append_builder_test() {
   let dir = setup_temp_dir()
   let file = dir <> "/SUMMARY"
-  let assert Ok(Nil) = simplifile.write(to: file, contents: "")
+  let assert Ok(Nil) = fio.write(file, "")
   envoy.set("GITHUB_STEP_SUMMARY", file)
 
   let assert Ok(Nil) =
@@ -298,7 +298,7 @@ pub fn append_builder_test() {
     |> summary.h1("Hello")
     |> summary.append()
 
-  let assert Ok("<h1>Hello</h1>\n") = simplifile.read(file)
+  let assert Ok("<h1>Hello</h1>\n") = fio.read(file)
 
   cleanup(dir)
 }
@@ -306,11 +306,11 @@ pub fn append_builder_test() {
 pub fn overwrite_replaces_test() {
   let dir = setup_temp_dir()
   let file = dir <> "/SUMMARY"
-  let assert Ok(Nil) = simplifile.write(to: file, contents: "old")
+  let assert Ok(Nil) = fio.write(file, "old")
   envoy.set("GITHUB_STEP_SUMMARY", file)
 
   let assert Ok(Nil) = summary.overwrite([Raw("new")])
-  let assert Ok("new") = simplifile.read(file)
+  let assert Ok("new") = fio.read(file)
 
   cleanup(dir)
 }
@@ -318,11 +318,11 @@ pub fn overwrite_replaces_test() {
 pub fn clear_empties_file_test() {
   let dir = setup_temp_dir()
   let file = dir <> "/SUMMARY"
-  let assert Ok(Nil) = simplifile.write(to: file, contents: "stuff")
+  let assert Ok(Nil) = fio.write(file, "stuff")
   envoy.set("GITHUB_STEP_SUMMARY", file)
 
   let assert Ok(Nil) = summary.clear()
-  let assert Ok("") = simplifile.read(file)
+  let assert Ok("") = fio.read(file)
 
   cleanup(dir)
 }
@@ -336,10 +336,10 @@ pub fn append_errors_without_env_var_test() {
 
 fn setup_temp_dir() -> String {
   let dir = "test/_temp_summary"
-  case simplifile.is_directory(dir) {
+  case fio.is_directory(dir) {
     Ok(True) -> Nil
     _ -> {
-      let assert Ok(Nil) = simplifile.create_directory(dir)
+      let assert Ok(Nil) = fio.create_directory(dir)
       Nil
     }
   }
@@ -347,6 +347,6 @@ fn setup_temp_dir() -> String {
 }
 
 fn cleanup(dir: String) {
-  let assert Ok(Nil) = simplifile.delete(dir)
+  let assert Ok(Nil) = fio.delete_all(dir)
   envoy.unset("GITHUB_STEP_SUMMARY")
 }

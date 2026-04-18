@@ -11,7 +11,7 @@ Security reports are accepted for the most recent major release with support for
 the previous major version ending immediately.
 
 Puntil supports the two most recent major version of Gleam (currently 1.14 and
-1.15). Puntil is tested on Node 24 and Erlang/OTP versions 27 and 28.
+1.15). Puntil is tested on Node 24.
 
 ## Reporting a Vulnerability
 

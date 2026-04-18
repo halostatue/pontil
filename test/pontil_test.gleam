@@ -1,10 +1,9 @@
 import envoy
+import fio
 import gleam/string
 import gleeunit
 import pontil
 import pontil/errors
-import pontil/types.{InputOptions}
-import simplifile
 
 pub fn main() -> Nil {
   gleeunit.main()
@@ -38,42 +37,36 @@ pub fn get_input_trims_whitespace_by_default_test() {
   let assert "some val" = pontil.get_input("with trailing whitespace")
 }
 
-// --- get_input_with_options ---
+// --- get_input_opts ---
 
-pub fn get_input_with_options_required_present_test() {
+pub fn get_input_opts_required_present_test() {
   envoy.set("INPUT_MY_INPUT", "val")
   let assert Ok("val") =
-    pontil.get_input_with_options(
-      "my input",
-      InputOptions(required: True, trim_whitespace: True),
-    )
+    pontil.get_input_opts("my input", [
+      pontil.InputRequired,
+      pontil.TrimInput,
+    ])
 }
 
-pub fn get_input_with_options_required_missing_test() {
+pub fn get_input_opts_required_missing_test() {
   envoy.unset("INPUT_MISSING")
   let assert Error(errors.InputRequired("missing")) =
-    pontil.get_input_with_options(
-      "missing",
-      InputOptions(required: True, trim_whitespace: True),
-    )
+    pontil.get_input_opts("missing", [
+      pontil.InputRequired,
+      pontil.TrimInput,
+    ])
 }
 
-pub fn get_input_with_options_no_trim_test() {
+pub fn get_input_opts_no_trim_test() {
   envoy.set("INPUT_WITH_TRAILING_WHITESPACE", "  some val  ")
   let assert Ok("  some val  ") =
-    pontil.get_input_with_options(
-      "with trailing whitespace",
-      InputOptions(required: False, trim_whitespace: False),
-    )
+    pontil.get_input_opts("with trailing whitespace", [])
 }
 
-pub fn get_input_with_options_trim_explicit_test() {
+pub fn get_input_opts_trim_explicit_test() {
   envoy.set("INPUT_WITH_TRAILING_WHITESPACE", "  some val  ")
   let assert Ok("some val") =
-    pontil.get_input_with_options(
-      "with trailing whitespace",
-      InputOptions(required: False, trim_whitespace: True),
-    )
+    pontil.get_input_opts("with trailing whitespace", [pontil.TrimInput])
 }
 
 // --- get_boolean_input ---
@@ -117,10 +110,7 @@ pub fn get_multiline_input_trims_by_default_test() {
 pub fn get_multiline_input_no_trim_test() {
   envoy.set("INPUT_MY_LIST", "  val1  \n  val2  \n  ")
   let assert Ok(["  val1  ", "  val2  ", "  "]) =
-    pontil.get_multiline_input_with_options(
-      "my list",
-      InputOptions(required: False, trim_whitespace: False),
-    )
+    pontil.get_multiline_input_opts("my list", [])
 }
 
 // --- is_debug ---
@@ -157,12 +147,12 @@ pub fn get_state_returns_empty_when_missing_test() {
 pub fn export_variable_file_command_test() {
   let dir = setup_temp_dir()
   let file = dir <> "/ENV"
-  let assert Ok(Nil) = simplifile.write(to: file, contents: "")
+  let assert Ok(Nil) = fio.write(file, "")
   envoy.set("GITHUB_ENV", file)
 
   let assert Ok(Nil) = pontil.export_variable("my_var", "var_val")
 
-  let assert Ok(contents) = simplifile.read(file)
+  let assert Ok(contents) = fio.read(file)
   let assert True = string.contains(contents, "my_var<<ghadelimiter_")
   let assert True = string.contains(contents, "var_val")
 
@@ -172,12 +162,12 @@ pub fn export_variable_file_command_test() {
 pub fn set_output_file_command_test() {
   let dir = setup_temp_dir()
   let file = dir <> "/OUTPUT"
-  let assert Ok(Nil) = simplifile.write(to: file, contents: "")
+  let assert Ok(Nil) = fio.write(file, "")
   envoy.set("GITHUB_OUTPUT", file)
 
   let assert Ok(Nil) = pontil.set_output("my_out", "out_val")
 
-  let assert Ok(contents) = simplifile.read(file)
+  let assert Ok(contents) = fio.read(file)
   let assert True = string.contains(contents, "my_out<<ghadelimiter_")
   let assert True = string.contains(contents, "out_val")
 
@@ -187,12 +177,12 @@ pub fn set_output_file_command_test() {
 pub fn save_state_file_command_test() {
   let dir = setup_temp_dir()
   let file = dir <> "/STATE"
-  let assert Ok(Nil) = simplifile.write(to: file, contents: "")
+  let assert Ok(Nil) = fio.write(file, "")
   envoy.set("GITHUB_STATE", file)
 
   let assert Ok(Nil) = pontil.save_state("my_state", "state_val")
 
-  let assert Ok(contents) = simplifile.read(file)
+  let assert Ok(contents) = fio.read(file)
   let assert True = string.contains(contents, "my_state<<ghadelimiter_")
   let assert True = string.contains(contents, "state_val")
 
@@ -202,13 +192,13 @@ pub fn save_state_file_command_test() {
 pub fn add_path_file_command_test() {
   let dir = setup_temp_dir()
   let file = dir <> "/PATH"
-  let assert Ok(Nil) = simplifile.write(to: file, contents: "")
+  let assert Ok(Nil) = fio.write(file, "")
   envoy.set("GITHUB_PATH", file)
   envoy.set("PATH", "/usr/bin")
 
   let assert Ok(Nil) = pontil.add_path("/my/path")
 
-  let assert Ok(contents) = simplifile.read(file)
+  let assert Ok(contents) = fio.read(file)
   let assert True = string.contains(contents, "/my/path")
 
   let assert Ok(path) = envoy.get("PATH")
@@ -221,10 +211,10 @@ pub fn add_path_file_command_test() {
 
 fn setup_temp_dir() -> String {
   let dir = "test/_temp"
-  case simplifile.is_directory(dir) {
+  case fio.is_directory(dir) {
     Ok(True) -> Nil
     _ -> {
-      let assert Ok(Nil) = simplifile.create_directory(dir)
+      let assert Ok(Nil) = fio.create_directory(dir)
       Nil
     }
   }
@@ -232,7 +222,7 @@ fn setup_temp_dir() -> String {
 }
 
 fn cleanup(dir: String) {
-  let assert Ok(Nil) = simplifile.delete(dir)
+  let assert Ok(Nil) = fio.delete_all(dir)
   // Clear file command env vars so they don't leak between tests
   envoy.unset("GITHUB_ENV")
   envoy.unset("GITHUB_OUTPUT")

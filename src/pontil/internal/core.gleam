@@ -1,16 +1,32 @@
 import envoy
+import fio
 import gleam/bool
 import gleam/dict.{type Dict}
 import gleam/int
 import gleam/io
+import gleam/javascript/promise.{type Promise}
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/result
 import gleam/string
 import pontil/errors.{type PontilError}
 import pontil/types
-import simplifile
+import shellout
 import youid/uuid
+
+pub fn debug(message: String) -> Nil {
+  issue_command(cmd: "debug", msg: message, props: None)
+}
+
+pub fn set_secret(secret: String) -> String {
+  case envoy.get("GITHUB_ACTIONS") {
+    Ok("true") -> issue_command(cmd: "add-mask", msg: secret, props: None)
+    _else ->
+      issue_command(cmd: "add-mask", msg: "not-in-github-actions", props: None)
+  }
+
+  secret
+}
 
 pub fn get_nonempty_env_var(name: String) -> Option(String) {
   case envoy.get(name) {
@@ -22,7 +38,7 @@ pub fn get_nonempty_env_var(name: String) -> Option(String) {
 type CommandProperties =
   Dict(String, String)
 
-pub fn log_issue_with_properties(
+pub fn log_issue(
   cmd command: String,
   msg message: String,
   props props: List(types.AnnotationProperties),
@@ -37,7 +53,7 @@ pub fn log_issue_with_properties(
 pub fn annotation_to_command_properties(
   props: List(types.AnnotationProperties),
 ) -> Option(CommandProperties) {
-  use <- bool.guard(when: bool.negate(list.is_empty(props)), return: None)
+  use <- bool.guard(when: list.is_empty(props), return: None)
 
   props
   |> list.fold(dict.new(), fn(acc, property) {
@@ -78,9 +94,9 @@ pub fn issue_file_command(
     |> option.to_result(errors.MissingEnvVar("GITHUB_" <> command)),
   )
 
-  case simplifile.is_file(file_path) {
+  case fio.is_file(file_path) {
     Ok(True) -> {
-      case simplifile.append(to: file_path, contents: message <> "\n") {
+      case fio.append(file_path, message <> "\n") {
         Ok(Nil) -> Ok(Nil)
         Error(error) -> Error(errors.FileError(error))
       }
@@ -121,6 +137,126 @@ pub fn escape_property(value: String) -> String {
   |> string.replace(",", "%2C")
 }
 
-@external(erlang, "pontil_ffi", "set_exit_code")
 @external(javascript, "../../pontil_ffi.mjs", "setExitCode")
 pub fn set_exit_code(value: types.ExitCode) -> Nil
+
+pub fn try_promise(
+  result: Result(a, e),
+  next: fn(a) -> Promise(Result(b, e)),
+) -> Promise(Result(b, e)) {
+  case result {
+    Ok(v) -> next(v)
+    Error(e) -> promise.resolve(Error(e))
+  }
+}
+
+@external(javascript, "../../pontil_ffi.mjs", "promiseFinally")
+pub fn promise_finally(
+  promise promise: Promise(a),
+  do fun: fn() -> b,
+) -> Promise(a)
+
+// --- Platform ---
+
+pub fn platform() -> String {
+  case os_type() {
+    types.Linux -> "linux"
+    types.MacOS -> "macos"
+    types.Other(value) -> value
+    types.Windows -> "windows"
+  }
+}
+
+@external(javascript, "../../pontil_ffi.mjs", "isWindows")
+pub fn is_windows() -> Bool
+
+@external(javascript, "../../pontil_ffi.mjs", "isMacos")
+pub fn is_macos() -> Bool
+
+@external(javascript, "../../pontil_ffi.mjs", "isLinux")
+pub fn is_linux() -> Bool
+
+@external(javascript, "../../pontil_ffi.mjs", "osType")
+pub fn os_type() -> types.OSType
+
+@external(javascript, "../../pontil_ffi.mjs", "osArch")
+pub fn arch() -> String
+
+pub fn details() -> types.OSInfo {
+  let os_type = os_type()
+
+  let #(name, version) = case os_type {
+    types.Windows -> get_windows_info()
+    types.MacOS -> get_macos_info()
+    types.Linux -> get_linux_info()
+    _ -> #("", "")
+  }
+
+  types.OSInfo(
+    arch: arch(),
+    is_linux: os_type == types.Linux,
+    is_macos: os_type == types.MacOS,
+    is_windows: os_type == types.Windows,
+    name:,
+    os_type:,
+    platform: platform(),
+    version:,
+  )
+}
+
+fn get_windows_info() -> #(String, String) {
+  let version =
+    get_stdout_or_blank(command: "powershell", args: [
+      "-command",
+      "(Get-CimInstance -ClassName Win32_OperatingSystem).Version",
+    ])
+
+  let name =
+    get_stdout_or_blank(command: "powershell", args: [
+      "-command",
+      "(Get-CimInstance -ClassName Win32_OperatingSystem).Caption",
+    ])
+
+  #(name, version)
+}
+
+fn get_macos_info() -> #(String, String) {
+  let output = get_stdout_or_blank(command: "sw_vers", args: [])
+
+  let version = parse_field(value: output, prefix: "ProductVersion:")
+  let name = parse_field(value: output, prefix: "ProductName:")
+
+  #(name, version)
+}
+
+fn get_linux_info() -> #(String, String) {
+  let output =
+    get_stdout_or_blank(command: "lsb_release", args: ["-i", "-r", "-s"])
+
+  case string.split(output, on: "\n") {
+    [name, version, ..] -> #(name, version)
+    [name] -> #(name, "")
+    [] -> #("", "")
+  }
+}
+
+fn get_stdout_or_blank(
+  command command: String,
+  args args: List(String),
+) -> String {
+  shellout.command(run: command, with: args, in: ".", opt: [])
+  |> result.map(fn(output) { string.trim(output) })
+  |> result.unwrap("")
+}
+
+fn parse_field(value value: String, prefix prefix: String) -> String {
+  value
+  |> string.split("\n")
+  |> list.find_map(fn(line) {
+    case string.split_once(line, prefix) {
+      Ok(#(_, value)) -> Ok(string.trim(value))
+      Error(error) -> Error(error)
+    }
+  })
+  |> result.unwrap("")
+}

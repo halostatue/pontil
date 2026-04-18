@@ -1,5 +1,4 @@
 test:
-    gleam test --target erlang
     gleam test --target javascript
 
 platform-info:
@@ -16,13 +15,6 @@ platform-info:
     EOS
 
     cat <<H
-    --------------------
-    Erlang Platform Info
-    --------------------
-    H
-    gleam run -m platform_info --target erlang
-
-    cat <<H
 
     ------------------
     Node Platform Info
@@ -31,7 +23,6 @@ platform-info:
     gleam run -m platform_info --target javascript
 
 build:
-    gleam build --target erlang
     gleam build --target javascript
 
 lint:

@@ -1,18 +1,18 @@
 # pontil: Gleaming GitHub Actions
 
 [![Hex.pm][shield-hex]][hexpm] [![Hex Docs][shield-docs]][docs]
-[![Apache 2.0][shield-licence]][licence]
+[![Apache 2.0][shield-licence]][licence] ![JavaScript Compatible][shield-js]
 
 - code :: <https://github.com/halostatue/pontil>
 - issues :: <https://github.com/halostatue/pontil/issues>
 
 A Gleam port of GitHub's [actions/toolkit][gha-toolkit], for writing GitHub
-Actions in Gleam.
+Actions in Gleam for JavaScript targets.
 
 ## Installation
 
 ```sh
-gleam add pontil@0
+gleam add pontil@1
 ```
 
 ```gleam
@@ -36,3 +36,4 @@ Pontil follows [Semantic Versioning 2.0][semver].
 [shield-docs]: https://img.shields.io/badge/hex-docs-lightgreen.svg?style=for-the-badge "Hex Docs"
 [shield-hex]: https://img.shields.io/hexpm/v/pontil?style=for-the-badge "Hex Version"
 [shield-licence]: https://img.shields.io/hexpm/l/pontil?style=for-the-badge&label=licence "Apache 2.0"
+[shield-js]: https://img.shields.io/badge/target-javascript-f3e155?style=for-the-badge

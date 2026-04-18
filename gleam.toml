@@ -1,17 +1,28 @@
 name = "pontil"
-version = "0.1.0"
+version = "1.0.0"
 description = "A Gleam port of GitHub's actions/toolkit"
 licences = ["Apache-2.0"]
 repository = { type = "github", user = "halostatue", repo = "pontil" }
+target = "javascript"
 
 gleam = ">= 1.14.0"
+
+[documentation]
+pages = [
+  { title = "Writing a GitHub Action", path = "writing-a-github-action.html", source = "guides/writing-a-github-action.md" },
+  { title = "Differences with @actions/toolkit", path = "differences-with-toolkit.html", source = "guides/differences-with-toolkit.md" },
+]
 
 [dependencies]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
 envoy = ">= 1.1.0 and < 2.0.0"
-simplifile = ">= 2.4.0 and < 3.0.0"
 youid = ">= 1.5.1 and < 2.0.0"
 shellout = ">= 1.8.0 and < 2.0.0"
+gleam_javascript = ">= 1.0.0 and < 2.0.0"
+gleam_json = ">= 3.1.0 and < 4.0.0"
+gleam_fetch = ">= 1.4.0 and < 2.0.0"
+gleam_http = ">= 4.3.0 and < 5.0.0"
+fio = ">= 1.2.0 and < 2.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
@@ -22,3 +33,9 @@ stats = true
 
 [tools.glinter.rules]
 unused_exports = "off"
+ffi_usage = "error"
+function_complexity = "warning"
+module_complexity = "warning"
+
+[tools.glinter.ignore]
+"src/pontil/internal/**/*.gleam" = ["label_possible"]
