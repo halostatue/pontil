@@ -1,12 +1,12 @@
 # Contributing
 
-Contribution to puntil is encouraged: bug reports, discussions, feature
+Contribution to pontil projects is encouraged: bug reports, discussions, feature
 requests, or code contributions. New features should be proposed and discussed
 in an [issue][issues].
 
 Before contributing patches, please read the [Licence](./LICENCE.md).
 
-Puntil is governed under the [Contributor Covenant Code of Conduct][cccoc].
+Pontil is governed under the [Contributor Covenant Code of Conduct][cccoc].
 
 ## Code Guidelines
 
@@ -39,7 +39,7 @@ I have several guidelines to contributing code through pull requests:
 
 ## AI Contribution Policy
 
-Puntil contributions must be well understood by the submitter and that the
+Pontil contributions must be well understood by the submitter and that the
 developer can attest to the [Developer Certificate of Origin][dco] for each pull
 request (see [LICENCE](LICENCE.md)).
 
@@ -48,8 +48,8 @@ output will be rejected.
 
 ## Commit Conventions
 
-Puntil has adopted a variation of the Conventional Commits format for commit
-messages. The following types are permitted:
+Pontil projects have adopted a variation of the Conventional Commits format for
+commit messages. The following types are permitted:
 
 | Type    | Purpose                                               |
 | ------- | ----------------------------------------------------- |
@@ -84,7 +84,7 @@ required metadata trailers are:
 
 ## Contributors
 
-Austin Ziegler created puntil.
+Austin Ziegler created pontil.
 
 [cbeams]: https://cbea.ms/git-commit/
 [cccoc]: ./CODE_OF_CONDUCT.md
@@ -92,7 +92,7 @@ Austin Ziegler created puntil.
 [credo]: https://github.com/rrrene/credo
 [dco]: licences/dco.txt
 [gleeunit]: https://hexdocs.pm/gleeunit
-[issues]: https://github.com/halostatue/puntil/issues
+[issues]: https://github.com/halostatue/pontil/issues
 [glinter]: https://hexdocs.pm/glinter
 [tpope-qcm]: https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
 [trailers1]: https://git-scm.com/docs/git-interpret-trailers

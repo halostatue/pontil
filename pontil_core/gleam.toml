@@ -1,0 +1,36 @@
+name = "pontil_core"
+version = "1.0.0"
+description = "Runtime independent GitHub Action tooling"
+licences = ["Apache-2.0"]
+gleam = ">= 1.14.0"
+
+[repository]
+type = "github"
+user = "halostatue"
+repo = "pontil"
+path = "pontil_core"
+tag_prefix = "pontil_core-"
+
+[dependencies]
+gleam_stdlib = ">= 0.44.0 and < 2.0.0"
+envoy = ">= 1.1.0 and < 2.0.0"
+youid = ">= 1.5.1 and < 2.0.0"
+simplifile = ">= 2.2.0 and < 3.0.0"
+pontil_platform = ">= 1.0.0 and < 2.0.0"
+
+[dev-dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
+glinter = ">= 2.15.0 and < 3.0.0"
+take = ">= 1.0.0 and < 2.0.0"
+
+[tools.glinter]
+stats = true
+
+[tools.glinter.rules]
+unused_exports = "off"
+ffi_usage = "error"
+function_complexity = "warning"
+module_complexity = "warning"
+
+[javascript.deno]
+allow_read = ["gleam.toml", "test"]
