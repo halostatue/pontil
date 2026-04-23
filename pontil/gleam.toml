@@ -50,5 +50,6 @@ module_complexity = "warning"
 "src/pontil/internal/**/*.gleam" = ["label_possible"]
 
 [javascript.deno]
+allow_env = true
 allow_read = ["gleam.toml", "test"]
 allow_write = ["test/_temp"]
