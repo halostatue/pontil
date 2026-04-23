@@ -1,54 +1,45 @@
 packages := "pontil_platform pontil_core pontil_summary pontil"
+pkg_dir := "packages"
 
 _default:
     just --list
 
 test:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    for pkg in {{ packages }}; do
-      echo "=== Testing ${pkg} ==="
-      just "${pkg}"/test
-    done
+    just {{ pkg_dir }}/pontil_platform/test
+    just {{ pkg_dir }}/pontil_core/test
+    just {{ pkg_dir }}/pontil_summary/test
+    just {{ pkg_dir }}/pontil/test
 
 docs:
-    #!/usr/bin/env bash
-    for pkg in {{ packages }}; do
-      just "${pkg}"/docs
-    done
+    just {{ pkg_dir }}/pontil_platform/docs
+    just {{ pkg_dir }}/pontil_core/docs
+    just {{ pkg_dir }}/pontil_summary/docs
+    just {{ pkg_dir }}/pontil/docs
 
 docs-open:
-    #!/usr/bin/env bash
-    for pkg in {{ packages }}; do
-      just "${pkg}"/docs-open
-    done
+    just {{ pkg_dir }}/pontil_platform/docs-open
+    just {{ pkg_dir }}/pontil_core/docs-open
+    just {{ pkg_dir }}/pontil_summary/docs-open
+    just {{ pkg_dir }}/pontil/docs-open
 
 build:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    for pkg in {{ packages }}; do
-      echo "=== Building ${pkg} ==="
-      just "${pkg}"/build
-    done
+    just {{ pkg_dir }}/pontil_platform/build
+    just {{ pkg_dir }}/pontil_core/build
+    just {{ pkg_dir }}/pontil_summary/build
+    just {{ pkg_dir }}/pontil/build
 
 lint:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    for pkg in {{ packages }}; do
-      echo "=== Linting ${pkg} ==="
-      just "${pkg}"/lint
-    done
+    just {{ pkg_dir }}/pontil_platform/lint
+    just {{ pkg_dir }}/pontil_core/lint
+    just {{ pkg_dir }}/pontil_summary/lint
+    just {{ pkg_dir }}/pontil/lint
 
 format-check:
     #!/usr/bin/env bash
     set -euo pipefail
     for pkg in {{ packages }}; do
       echo "=== Format check ${pkg} ==="
-
-      (
-        cd "${pkg}"
-        gleam format --check src test
-      )
+      (cd {{ pkg_dir }}/"${pkg}" && gleam format --check src test)
     done
 
 format:
@@ -56,38 +47,29 @@ format:
     set -euo pipefail
     for pkg in {{ packages }}; do
       echo "=== Format ${pkg} ==="
-
-      (
-        cd "${pkg}"
-        gleam format
-        deno fmt **.md
-      )
+      (cd {{ pkg_dir }}/"${pkg}" && gleam format && deno fmt **.md)
     done
 
 deps *args="download":
     #!/usr/bin/env bash
     set -euo pipefail
     for pkg in {{ packages }}; do
-      echo "=== Downloading deps for ${pkg} ==="
-
-      (
-        cd "${pkg}"
-        gleam deps {{ args }}
-      )
+      echo "=== Deps ${pkg} ==="
+      (cd {{ pkg_dir }}/"${pkg}" && gleam deps {{ args }})
     done
 
 @choire:
-    just pontil/choire
+    just {{ pkg_dir }}/pontil/choire
 
 @platform-info TARGET="all":
-    just pontil_platform/platform-info {{ TARGET }}
+    just {{ pkg_dir }}/pontil_platform/platform-info {{ TARGET }}
 
 # Fail if any gleam.toml has path deps (CI gate).
 [group('dev')]
 dev-check:
     #!/usr/bin/env bash
     set -euo pipefail
-    if grep -rn 'path = "\.\.' */gleam.toml; then
+    if grep -rn 'path = "\.\.' {{ pkg_dir }}/*/gleam.toml; then
       echo "ERROR: path dependencies found. Run 'just dev-end' before committing."
       exit 1
     fi
@@ -104,11 +86,11 @@ dev-start:
       rm -f "${file}.bak"
     }
 
-    replace pontil_core/gleam.toml    pontil_platform '../pontil_platform'
-    replace pontil_summary/gleam.toml pontil_core     '../pontil_core'
-    replace pontil/gleam.toml         pontil_core     '../pontil_core'
-    replace pontil/gleam.toml         pontil_platform '../pontil_platform'
-    replace pontil/gleam.toml         pontil_summary  '../pontil_summary'
+    replace {{ pkg_dir }}/pontil_core/gleam.toml    pontil_platform '../pontil_platform'
+    replace {{ pkg_dir }}/pontil_summary/gleam.toml pontil_core     '../pontil_core'
+    replace {{ pkg_dir }}/pontil/gleam.toml         pontil_core     '../pontil_core'
+    replace {{ pkg_dir }}/pontil/gleam.toml         pontil_platform '../pontil_platform'
+    replace {{ pkg_dir }}/pontil/gleam.toml         pontil_summary  '../pontil_summary'
 
     echo "Switched to path deps for local development."
 
@@ -124,9 +106,9 @@ dev-end:
       rm -f "${file}.bak"
     }
 
-    replace pontil_core/gleam.toml    pontil_platform '>= 1.0.0 and < 2.0.0'
-    replace pontil_summary/gleam.toml pontil_core     '>= 1.0.0 and < 2.0.0'
-    replace pontil/gleam.toml         pontil_core     '>= 1.0.0 and < 2.0.0'
-    replace pontil/gleam.toml         pontil_platform '>= 1.0.0 and < 2.0.0'
+    replace {{ pkg_dir }}/pontil_core/gleam.toml    pontil_platform '>= 1.0.0 and < 2.0.0'
+    replace {{ pkg_dir }}/pontil_summary/gleam.toml pontil_core     '>= 1.0.0 and < 2.0.0'
+    replace {{ pkg_dir }}/pontil/gleam.toml         pontil_core     '>= 1.0.0 and < 2.0.0'
+    replace {{ pkg_dir }}/pontil/gleam.toml         pontil_platform '>= 1.0.0 and < 2.0.0'
 
     echo "Restored version constraints for publishing."
