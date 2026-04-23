@@ -33,4 +33,5 @@ function_complexity = "warning"
 module_complexity = "warning"
 
 [javascript.deno]
+allow_env = true
 allow_read = ["gleam.toml", "test"]

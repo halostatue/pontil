@@ -22,5 +22,6 @@ gleeunit = ">= 1.0.0 and < 2.0.0"
 glinter = ">= 2.15.0 and < 3.0.0"
 
 [javascript.deno]
+allow_env = true
 allow_read = ["gleam.toml", "test"]
 allow_write = ["test/_temp"]
