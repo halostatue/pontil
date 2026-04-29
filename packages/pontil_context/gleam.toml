@@ -1,0 +1,36 @@
+name = "pontil_context"
+version = "1.0.0"
+description = "GitHub context and webhook event payloads for GitHub Actions"
+licences = ["Apache-2.0"]
+gleam = ">= 1.14.0"
+
+[repository]
+type = "github"
+user = "halostatue"
+repo = "pontil"
+path = "pontil_context"
+tag_prefix = "pontil_context-"
+
+[dependencies]
+gleam_stdlib = ">= 0.44.0 and < 2.0.0"
+envoy = ">= 1.1.0 and < 2.0.0"
+gleam_json = ">= 3.1.0 and < 4.0.0"
+simplifile = ">= 2.2.0 and < 3.0.0"
+
+[dev-dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
+glinter = ">= 2.15.0 and < 3.0.0"
+
+[tools.glinter]
+stats = true
+
+[tools.glinter.rules]
+unused_exports = "off"
+ffi_usage = "error"
+function_complexity = "warning"
+module_complexity = "warning"
+
+[javascript.deno]
+allow_env = true
+allow_read = ["gleam.toml", "test"]
+allow_write = ["test"]

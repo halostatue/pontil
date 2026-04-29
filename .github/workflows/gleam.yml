@@ -87,6 +87,9 @@ jobs:
       - name: Deps pontil
         run: gleam deps download
         working-directory: packages/pontil
+      - name: Deps pontil_context
+        run: gleam deps download
+        working-directory: packages/pontil_context
 
       - name: Test pontil_platform
         run: gleam test --target erlang
@@ -97,6 +100,9 @@ jobs:
       - name: Test pontil_summary
         run: gleam test --target erlang
         working-directory: packages/pontil_summary
+      - name: Test pontil_context
+        run: gleam test --target erlang
+        working-directory: packages/pontil_context
 
       - name: Format check pontil_platform
         if: matrix.quality
@@ -114,6 +120,10 @@ jobs:
         if: matrix.quality
         run: gleam format --check src test
         working-directory: packages/pontil
+      - name: Format check pontil_context
+        if: matrix.quality
+        run: gleam format --check src test
+        working-directory: packages/pontil_context
 
       - name: Lint pontil_platform
         if: matrix.quality
@@ -131,6 +141,10 @@ jobs:
         if: matrix.quality
         run: gleam run -m glinter
         working-directory: packages/pontil
+      - name: Lint pontil_context
+        if: matrix.quality
+        run: gleam run -m glinter
+        working-directory: packages/pontil_context
 
   test-bun:
     name: Gleam ${{ matrix.gleam }} OTP ${{ matrix.otp }} / Bun ${{ matrix.bun }}
@@ -207,6 +221,9 @@ jobs:
       - name: Deps pontil
         run: gleam deps download
         working-directory: packages/pontil
+      - name: Deps pontil_context
+        run: gleam deps download
+        working-directory: packages/pontil_context
 
       - name: Test pontil_platform
         run: gleam test --target javascript --runtime bun
@@ -220,6 +237,9 @@ jobs:
       - name: Test pontil
         run: gleam test --target javascript --runtime bun
         working-directory: packages/pontil
+      - name: Test pontil_context
+        run: gleam test --target javascript --runtime bun
+        working-directory: packages/pontil_context
 
   test-deno:
     name: Gleam ${{ matrix.gleam }} OTP ${{ matrix.otp }} / Deno ${{ matrix.deno }}
@@ -297,6 +317,9 @@ jobs:
       - name: Deps pontil
         run: gleam deps download
         working-directory: packages/pontil
+      - name: Deps pontil_context
+        run: gleam deps download
+        working-directory: packages/pontil_context
 
       - name: Test pontil_platform
         run: gleam test --target javascript --runtime deno
@@ -310,6 +333,9 @@ jobs:
       - name: Test pontil
         run: gleam test --target javascript --runtime deno
         working-directory: packages/pontil
+      - name: Test pontil_context
+        run: gleam test --target javascript --runtime deno
+        working-directory: packages/pontil_context
 
   test-node:
     name: Gleam ${{ matrix.gleam }} OTP ${{ matrix.otp }} / Node ${{ matrix.node }}
@@ -386,6 +412,9 @@ jobs:
       - name: Deps pontil
         run: gleam deps download
         working-directory: packages/pontil
+      - name: Deps pontil_context
+        run: gleam deps download
+        working-directory: packages/pontil_context
 
       - name: Test pontil_platform
         run: gleam test --target javascript --runtime node
@@ -399,3 +428,6 @@ jobs:
       - name: Test pontil
         run: gleam test --target javascript --runtime node
         working-directory: packages/pontil
+      - name: Test pontil_context
+        run: gleam test --target javascript --runtime node
+        working-directory: packages/pontil_context
