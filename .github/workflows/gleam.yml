@@ -23,12 +23,12 @@ jobs:
         gleam:
           - "1.14"
           - "1.15"
-          - "v1.16.0-rc4"
+          - "1.16"
         otp:
           - 27
           - 28
         include:
-          - gleam: "1.15"
+          - gleam: "1.16"
             otp: 28
             quality: true
 
@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
         with:
           disable-sudo: true
           egress-policy: block
@@ -155,7 +155,7 @@ jobs:
         gleam:
           - "1.14"
           - "1.15"
-          - "v1.16.0-rc4"
+          - "1.16"
         otp:
           - 28
         bun:
@@ -168,7 +168,7 @@ jobs:
 
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
         with:
           disable-sudo: true
           egress-policy: block
@@ -250,7 +250,7 @@ jobs:
         gleam:
           - "1.14"
           - "1.15"
-          - "v1.16.0-rc4"
+          - "1.16"
         otp:
           - 28
         deno:
@@ -263,7 +263,7 @@ jobs:
 
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
         with:
           disable-sudo: true
           egress-policy: block
@@ -346,7 +346,7 @@ jobs:
         gleam:
           - "1.14"
           - "1.15"
-          - "v1.16.0-rc4"
+          - "1.16"
         otp:
           - 28
         node:
@@ -359,7 +359,7 @@ jobs:
 
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
         with:
           disable-sudo: true
           egress-policy: block
@@ -384,7 +384,7 @@ jobs:
           gleam-version: ${{ matrix.gleam }}
           rebar3-version: "3"
 
-      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         id: node
         with:
           node-version: ${{ matrix.node }}
