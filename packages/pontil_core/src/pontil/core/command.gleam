@@ -152,7 +152,10 @@ pub fn get_nonempty_env_var(name: String) -> Option(String) {
 ///
 /// This function is an internal command.
 @internal
-pub fn prepare_key_value_message(key key: String, value value: String) -> String {
+pub fn prepare_key_value_message(
+  key key: String,
+  value value: String,
+) -> String {
   let delimiter = "ghadelimiter_" <> uuid.v7_string()
   key <> "<<" <> delimiter <> "\n" <> value <> "\n" <> delimiter
 }

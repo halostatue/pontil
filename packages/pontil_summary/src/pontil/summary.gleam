@@ -166,7 +166,10 @@ pub fn header_row(
 /// |> summary.header_row(["Name", "Value"])
 /// |> summary.row(["Tests", "42"])
 /// ```
-pub fn row(table builder: TableBuilder, row data: List(String)) -> TableBuilder {
+pub fn row(
+  table builder: TableBuilder,
+  row data: List(String),
+) -> TableBuilder {
   TableBuilder(rows: [list.map(data, td), ..builder.rows])
 }
 
@@ -442,7 +445,9 @@ pub fn append(elements: List(SummaryElement)) -> Result(Nil, PontilCoreError) {
 
 /// Writes summary elements to the `GITHUB_STEP_SUMMARY` file, replacing
 /// existing content.
-pub fn overwrite(elements: List(SummaryElement)) -> Result(Nil, PontilCoreError) {
+pub fn overwrite(
+  elements: List(SummaryElement),
+) -> Result(Nil, PontilCoreError) {
   write_buffer(buffer: to_string(elements), overwrite: True)
 }
 
