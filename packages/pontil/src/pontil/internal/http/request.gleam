@@ -250,7 +250,9 @@ pub fn set_query(
 }
 
 /// Decode the query parameters.
-pub fn get_query(req: HttpRequest(body)) -> Result(List(#(String, String)), Nil) {
+pub fn get_query(
+  req: HttpRequest(body),
+) -> Result(List(#(String, String)), Nil) {
   request.get_query(req.request)
 }
 
@@ -269,7 +271,10 @@ pub fn get_cookies(req: HttpRequest(body)) -> List(#(String, String)) {
 }
 
 /// Remove a cookie from the request.
-pub fn remove_cookie(req: HttpRequest(body), name: String) -> HttpRequest(body) {
+pub fn remove_cookie(
+  req: HttpRequest(body),
+  name: String,
+) -> HttpRequest(body) {
   HttpRequest(..req, request: request.remove_cookie(req.request, name))
 }
 
