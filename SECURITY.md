@@ -10,10 +10,14 @@ agents.
 Security reports are accepted for the most recent major release of each package
 with support for the previous major version ending immediately.
 
-Pontil supports the two most recent major version of Gleam (currently 1.14 and
-1.15). Pontil projects supporting only JavaScript targets are tested on Node 24.
-Pontil projects supporting Erlang targets are tested against OTP 27 and 28. Some
-functionality may be tested on the latest versions of Bun and Deno.
+Pontil supports the two most recent minor versions of Gleam (currently 1.15 and
+1.16) with the latest patch release for those versions. Older Gleam versions
+will be supported for approximately one month after the release of a new
+version.
+
+Pontil projects supporting JavaScript targets are tested on Node 24 and most
+functionality will be tested on the latest versions of Bun and Deno. Pontil
+projects supporting Erlang targets are tested against OTP 27 and 28.
 
 ## Reporting a Vulnerability
 
