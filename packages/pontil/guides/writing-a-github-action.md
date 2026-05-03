@@ -35,14 +35,20 @@ gleam_stdlib = ">= 0.44.0 and < 2.0.0"
 pontil = ">= 1.0.0 and < 2.0.0"
 
 [dev-dependencies]
-esgleam = ">= 1.0.0 and < 2.0.0"
+pontil_build = ">= 1.0.0 and < 2.0.0"
+
+[tools.pontil_build.bundle]
+entry = "my_feature_action.gleam"
 ```
 
 Key dependencies:
 
 - `pontil`: the Actions toolkit
-- `esgleam`: bundles your Gleam code into a single runnable file for the action
-  runner
+- `pontil_build`: bundles your Gleam code into a single CommonJS file for the
+  action runner, configured entirely through `gleam.toml`
+
+> **Alternative:** If you prefer a more general-purpose bundler,
+> [esgleam][esgleam] can also be used.
 
 ### `action.yml`
 
@@ -62,7 +68,7 @@ inputs:
 
 runs:
   using: "node24"
-  main: "dist/my_feature.js"
+  main: "dist/my_feature.cjs"
 ```
 
 The `main` field points at the bundled output, not your Gleam source.
@@ -87,10 +93,8 @@ src/
   my_feature.gleam         # Library entry point
   my_feature_action.gleam  # Action entry point (what GitHub runs)
   my_feature_js.gleam      # JS CLI entry point
-dev/
-  build_action.gleam       # Bundler script
 dist/
-  my_feature.js            # Bundled output (committed)
+  my_feature.cjs           # Bundled output (committed)
 action.yml                 # Action metadata
 gleam.toml
 manifest.toml
@@ -103,8 +107,38 @@ entry point wires everything through `pontil`'s logging and output commands.
 
 ## The Bundler
 
-`dev/build_action.gleam` uses `esgleam` to produce a single-file CommonJS bundle
-that Node can run directly:
+`pontil_build` produces a single-file CommonJS bundle that Node can run
+directly. Unlike esgleam, there's no build script to write — configuration lives
+in `gleam.toml`:
+
+```toml
+[tools.pontil_build.bundle]
+entry = "my_feature_action.gleam"
+# outdir = "dist"          # default
+# minify = true            # default
+# autoinstall = true       # default
+```
+
+Run it with `gleam run -m pontil_build` after building your project.
+
+To install esbuild separately (useful for CI caching):
+
+```sh
+gleam run -m pontil_build/install
+```
+
+<details>
+<summary>Using esgleam instead</summary>
+
+If you prefer esgleam, replace `pontil_build` with `esgleam` in your
+dev-dependencies:
+
+```toml
+[dev-dependencies]
+esgleam = ">= 1.0.0 and < 2.0.0"
+```
+
+Then create a `dev/build_action.gleam` script:
 
 ```gleam
 import esgleam
@@ -122,6 +156,8 @@ pub fn main() {
 ```
 
 Run it with `gleam run -m build_action` after building your project.
+
+</details>
 
 ## The Action Entry Point
 
@@ -446,7 +482,7 @@ _default:
 @build:
     gleam format
     gleam build
-    gleam run -m build_action
+    gleam run -m pontil_build
 ```
 
 If your project uses code generation ([cog][cog], [squall][squall], etc.), add
@@ -457,7 +493,7 @@ those steps before `gleam build`:
     gleam run -m cog
     gleam format
     gleam build
-    gleam run -m build_action
+    gleam run -m pontil_build
 ```
 
 The workflow is: generate → format → compile → bundle. The bundled output in
@@ -496,6 +532,7 @@ INPUT_TOKEN=$(gh auth token) INPUT_CONFIG="inline toml" just action
 [gha-docs]: https://docs.github.com/en/actions
 [job-summaries]: https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#adding-a-job-summary
 [cog]: https://hexdocs.pm/cog
+[esgleam]: https://hexdocs.pm/esgleam
 [pontil_platform]: https://hexdocs.pm/pontil_platform
 [pontil_summary]: https://hexdocs.pm/pontil_summary
 [squall]: https://hexdocs.pm/squall
