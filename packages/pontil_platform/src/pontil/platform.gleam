@@ -26,6 +26,7 @@ pub type Os {
   Darwin
   FreeBsd
   Linux
+  NetBsd
   OpenBsd
   SunOs
   Win32
@@ -133,6 +134,7 @@ pub fn os_to_string(os: Os) -> String {
     Darwin -> "darwin"
     FreeBsd -> "freebsd"
     Linux -> "linux"
+    NetBsd -> "netbsd"
     OpenBsd -> "openbsd"
     SunOs -> "sunos"
     Win32 -> "win32"

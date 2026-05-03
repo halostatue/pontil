@@ -19,6 +19,7 @@ os() ->
         {unix, darwin} -> darwin;
         {unix, freebsd} -> free_bsd;
         {unix, linux} -> linux;
+        {unix, netbsd} -> net_bsd;
         {unix, openbsd} -> open_bsd;
         {unix, sunos} -> sun_os;
         {unix, Other} -> {other_os, atom_to_binary(Other, utf8)};
