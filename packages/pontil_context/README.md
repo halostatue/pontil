@@ -41,7 +41,7 @@ Pontil context follows [Semantic Versioning 2.0][semver].
 [docs]: https://hexdocs.pm/pontil_context
 [gha-toolkit]: https://github.com/actions/toolkit
 [hexpm]: https://hex.pm/package/pontil_context
-[licence]: https://github.com/halostatue/pontil/blob/main/pontil_context/LICENCE.md
+[licence]: https://github.com/halostatue/pontil/blob/main/LICENCE.md
 [semver]: https://semver.org/
 [shield-docs]: https://img.shields.io/badge/hex-docs-lightgreen.svg?style=for-the-badge "Hex Docs"
 [shield-erlang]: https://img.shields.io/badge/target-erlang-f3e155?style=for-the-badge "Erlang Compatible"
