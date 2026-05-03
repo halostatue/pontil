@@ -1,5 +1,14 @@
 # pontil Changelog
 
+## NEXT / YYYY-MM-DD
+
+- Documentation and repo updates. The symlinks to the supporting tools have been
+  removed from the directory and added as sidebar links to the root file in the
+  generated documentation.
+
+- The Writing a GitHub Action guide has been updated to encourage the use of
+  `pontil_build` in favour of direct `esgleam` usage.
+
 ## 1.0.0 / 2026-04-22
 
 This is the first major release of `pontil`, now covering all functions in

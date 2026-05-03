@@ -12,11 +12,34 @@ repo = "pontil"
 path = "pontil"
 tag_prefix = "pontil-"
 
-[documentation]
-pages = [
-  { title = "Writing a GitHub Action", path = "writing-a-github-action.html", source = "guides/writing-a-github-action.md" },
-  { title = "Differences with @actions/toolkit", path = "differences-with-toolkit.html", source = "guides/differences-with-toolkit.md" },
-]
+[[documentation.pages]]
+title = "Writing a GitHub Action"
+path = "writing-a-github-action.html"
+source = "guides/writing-a-github-action.md"
+[[documentation.pages]]
+title = "Differences with @actions/toolkit"
+path = "differences-with-toolkit.html"
+source = "guides/differences-with-toolkit.md"
+[[documentation.pages]]
+title = "Changelog"
+path = "changelog.html"
+source = "CHANGELOG.md"
+
+[[links]]
+title = "Licence"
+href = "https://github.com/halostatue/pontil/blob/main/LICENCE.md"
+[[links]]
+title = "Security"
+href = "https://github.com/halostatue/pontil/blob/main/SECURITY.md"
+[[links]]
+title = "Code of Conduct"
+href = "https://github.com/halostatue/pontil/blob/main/CODE_OF_CONDUCT.md"
+[[links]]
+title = "Contributing"
+href = "https://github.com/halostatue/pontil/blob/main/CONTRIBUTING.md"
+[[links]]
+title = "Sponsor"
+href = "https://github.com/sponsors/halostatue"
 
 [dependencies]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
