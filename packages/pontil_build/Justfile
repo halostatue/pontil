@@ -1,20 +1,26 @@
 _default:
     just --list
 
+# Run tests for pontil_build
 @test:
-    gleam test --target erlang
+    gleam test
 
+# Build pontil_build
 @build:
-    gleam build --target erlang
+    gleam build
 
+# Lint pontil_build
 @lint:
     gleam run -m glinter
 
+# Build docs for pontil_build
 @docs:
     gleam docs build
 
-@docs-open: docs
+# Open pontil_build docs in the browser
+@open-docs: docs
     open build/dev/docs/pontil_build/index.html
 
+# Clean all build artifacts
 @clean:
     rm -rf build

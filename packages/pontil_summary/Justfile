@@ -1,19 +1,28 @@
 _default:
     just --list
 
+# Run tests for pontil_summary with both targets
 @test:
     gleam test --target erlang
     gleam test --target javascript
 
+# Build pontil_summary with both targets
 @build:
     gleam build --target erlang
     gleam build --target javascript
 
+# Lint pontil_summary
 @lint:
     gleam run -m glinter
 
+# Build docs for pontil_summary
 @docs:
     gleam docs build
 
-@docs-open: docs
+# Open pontil_summary docs in the browser
+@open-docs: docs
     open build/dev/docs/pontil_summary/index.html
+
+# Clean all build artifacts
+@clean:
+    rm -rf build

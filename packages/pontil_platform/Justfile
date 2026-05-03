@@ -1,23 +1,33 @@
 _default:
     just --list
 
+# Run tests for pontil_info with both targets
 @test:
     gleam test --target erlang
     gleam test --target javascript
 
+# Build pontil_info with both targets
 @build:
     gleam build --target erlang
     gleam build --target javascript
 
+# Lint pontil_info
 @lint:
     gleam run -m glinter
 
+# Build docs for pontil_info
 @docs:
     gleam docs build
 
-@docs-open: docs
+# Open pontil_info docs in the browser
+@open-docs: docs
     open build/dev/docs/pontil_platform/index.html
 
+# Clean all build artifacts
+@clean:
+    rm -rf build
+
+# Demonstrate pontil_platform info
 platform-info TARGET="all":
     #!/usr/bin/env bash
     set -euo pipefail

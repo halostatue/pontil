@@ -4,48 +4,33 @@ packages := `fd . -td -d1 packages | sed -e 's.packages/..g' -e 's./..g' | tr '\
 _default:
     just --list
 
-test:
+# Run tests for all packages
+test: (_justall "test")
+
+# Build documentation for all packages
+docs: clean (_justall "docs")
+
+# Build all packages
+build: (_justall "build")
+
+# Lint check all packages
+lint: (_justall "lint")
+
+# Check formatting for all packages
+format-check: (_gleamall "check format" "format" "--check" "src" "test")
+
+# Format all packages
+format: (_gleamall "format" "format" "&&" "deno" "fmt" "*.md" "*/*.md")
+
+# Clean packages
+clean:
     #!/usr/bin/env bash
     set -euo pipefail
     for pkg in {{ packages }}; do
-      just {{ pkg_dir }}/"${pkg}"/test
+      just {{ pkg_dir }}/"${pkg}"/clean
     done
 
-docs:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    for pkg in {{ packages }}; do
-      just {{ pkg_dir }}/"${pkg}"/docs
-    done
-
-build:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    for pkg in {{ packages }}; do
-      just {{ pkg_dir }}/"${pkg}"/build
-    done
-
-lint:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    for pkg in {{ packages }}; do
-      just {{ pkg_dir }}/"${pkg}"/lint
-    done
-
-format-check:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    for pkg in {{ packages }}; do
-      (cd {{ pkg_dir }}/"${pkg}" && gleam format --check src test)
-    done
-
-format:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    for pkg in {{ packages }}; do
-      (cd {{ pkg_dir }}/"${pkg}" && gleam format && deno fmt **.md)
-    done
-
+# Work with deps on all packages
 deps *args="download":
     #!/usr/bin/env bash
     set -euo pipefail
@@ -53,9 +38,11 @@ deps *args="download":
       (cd {{ pkg_dir }}/"${pkg}" && gleam deps {{ args }})
     done
 
+# Run choire against the monorepo
 @choire:
     just {{ pkg_dir }}/pontil/choire
 
+# Test pontil_platform's platform-info output
 @platform-info TARGET="all":
     just {{ pkg_dir }}/pontil_platform/platform-info {{ TARGET }}
 
@@ -82,9 +69,13 @@ dev-start:
     }
 
     for pkg in {{ packages }}; do
-      replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_platform '../pontil_platform'
-      replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_core     '../pontil_core'
-      replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_summary  '../pontil_summary'
+      for pkg_name in {{ packages }}; do
+        replace {{ pkg_dir }}/"${pkg}"/gleam.toml "${pkg_name}" "../${pkg_name}"
+      done
+
+      # replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_platform '../pontil_platform'
+      # replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_core     '../pontil_core'
+      # replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_summary  '../pontil_summary'
     done
 
     echo "Switched to path deps for local development."
@@ -102,9 +93,33 @@ dev-end:
     }
 
     for pkg in {{ packages }}; do
-      replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_platform '>= 1.0.0 and < 2.0.0'
-      replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_core     '>= 1.0.0 and < 2.0.0'
-      replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_summary  '>= 1.0.0 and < 2.0.0'
+      for pkg_name in {{ packages }}; do
+        replace {{ pkg_dir }}/"${pkg}"/gleam.toml "${pkg_name}" '>= 2.0.0 and < 2.0.0'
+      done
+
+      # replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_platform '>= 1.0.0 and < 2.0.0'
+      # replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_core     '>= 1.0.0 and < 2.0.0'
+      # replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_summary  '>= 1.0.0 and < 2.0.0'
     done
 
     echo "Restored version constraints for publishing."
+
+@_justall action:
+    #!/usr/bin/env bash
+
+    set -euo pipefail
+
+    for pkg in {{ packages }}; do
+      echo "== {{ action }}: ${pkg} == "
+      just {{ pkg_dir }}/"${pkg}"/{{ action }}
+    done
+
+@_gleamall name *args:
+    #!/usr/bin/env bash
+
+    set -euo pipefail
+
+    for pkg in {{ packages }}; do
+      echo "== {{ name }}: ${pkg} == "
+      (cd {{ pkg_dir }}/"${pkg}" && gleam {{ args }})
+    done
