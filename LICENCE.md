@@ -8,6 +8,9 @@ The Pontil project is copyright © 2026 Austin Ziegler and is licensed under the
 Portions of `pontil_platform` are based on [DitherWither/platform][platform],
 copyright © 2024 by DitherWither.
 
+Portions of `pontil_build` are based on [Enderchief/esgleam][esgleam], copyright
+© 2023 by Enderchief.
+
 Pontil is based on [actions/toolkit][gha-toolkit], copyright 2019 GitHub and
 contributors.
 
@@ -33,6 +36,7 @@ git commit --signoff
 
 [apache-2]: https://spdx.org/licenses/Apache-2.0.html
 [elixir]: https://github.com/elixir-lang/elixir
+[esgleam]: https://github.com/Enderchief/esgleam
 [gha-toolkit]: https://github.com/actions/toolkit
 [platform]: https://github.com/ditherwither/platform
 [trailer]: https://git-scm.com/docs/git-interpret-trailers
