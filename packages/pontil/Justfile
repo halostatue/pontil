@@ -1,20 +1,26 @@
 _default:
     just --list
 
+# Run tests for pontil
 @test:
     gleam test
 
+# Build pontil
 @build:
     gleam build
 
+# Lint pontil
 @lint:
     gleam run -m glinter
 
-@choire:
-    gleam run -m choire ..
-
+# Build docs for pontil
 @docs:
     gleam docs build
 
-@docs-open: docs
+# Open pontil docs in the browser
+@open-docs: docs
     open build/dev/docs/pontil/index.html
+
+# Clean all build artifacts
+@clean:
+    rm -rf build
