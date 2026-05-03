@@ -5,13 +5,14 @@ A Gleam port of GitHub's [actions/toolkit][toolkit] for writing GitHub Actions.
 This is a monorepo containing the following packages, each published
 independently to [Hex][hex]:
 
-| Package                         | Description                              | Targets            |
-| ------------------------------- | ---------------------------------------- | ------------------ |
-| [`pontil`][pontil]              | High-level API for GitHub Actions        | JavaScript         |
-| [`pontil_context`][context]     | Execution context and webhook event data | Erlang, JavaScript |
-| [`pontil_core`][core]           | Core workflow commands and input parsing | Erlang, JavaScript |
-| [`pontil_platform`][platform]   | Runtime, OS, and architecture detection  | Erlang, JavaScript |
-| [`pontil_summary`][summary]     | Job summary builder                      | Erlang, JavaScript |
+| Package                       | Description                              | Targets            |
+| ----------------------------- | ---------------------------------------- | ------------------ |
+| [`pontil`][pontil]            | High-level API for GitHub Actions        | JavaScript         |
+| [`pontil_build`][build]       | `esbuild` bundler for GitHub Actions     | Erlang             |
+| [`pontil_context`][context]   | Execution context and webhook event data | Erlang, JavaScript |
+| [`pontil_core`][core]         | Core workflow commands and input parsing | Erlang, JavaScript |
+| [`pontil_platform`][platform] | Runtime, OS, and architecture detection  | Erlang, JavaScript |
+| [`pontil_summary`][summary]   | Job summary builder                      | Erlang, JavaScript |
 
 Most users should depend on `pontil` directly. The sub-packages exist for use
 cases that don't need the full toolkit or need Erlang target support.
@@ -33,6 +34,7 @@ just dev-check   # Verify no path deps remain (CI gate)
 
 [Apache 2.0](./LICENCE.md)
 
+[build]: https://hexdocs.pm/pontil_build
 [context]: https://hexdocs.pm/pontil_context
 [core]: https://hexdocs.pm/pontil_core
 [gleam]: https://gleam.run

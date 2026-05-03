@@ -1,0 +1,59 @@
+name = "pontil_build"
+version = "1.0.0"
+description = "esbuild bundler for GitHub Actions written in Gleam"
+licences = ["Apache-2.0"]
+target = "erlang"
+gleam = ">= 1.14.0"
+
+[repository]
+type = "github"
+user = "halostatue"
+repo = "pontil"
+path = "pontil_build"
+tag_prefix = "pontil_build-"
+
+[[documentation.pages]]
+title = "Changelog"
+path = "changelog.html"
+source = "CHANGELOG.md"
+
+[[links]]
+title = "Licence"
+href = "https://github.com/halostatue/pontil/blob/main/LICENCE.md"
+[[links]]
+title = "Security"
+href = "https://github.com/halostatue/pontil/blob/main/SECURITY.md"
+[[links]]
+title = "Code of Conduct"
+href = "https://github.com/halostatue/pontil/blob/main/CODE_OF_CONDUCT.md"
+[[links]]
+title = "Contributing"
+href = "https://github.com/halostatue/pontil/blob/main/CONTRIBUTING.md"
+[[links]]
+title = "Sponsor"
+href = "https://github.com/sponsors/halostatue"
+
+[dependencies]
+gleam_stdlib = ">= 0.44.0 and < 2.0.0"
+tom = ">= 2.1.0 and < 3.0.0"
+simplifile = ">= 2.4.0 and < 3.0.0"
+shellout = ">= 1.8.0 and < 2.0.0"
+gleam_http = ">= 4.3.0 and < 5.0.0"
+gleam_httpc = ">= 5.0.0 and < 6.0.0"
+star = ">= 1.0.0 and < 2.0.0"
+pontil_platform = ">= 1.0.0 and < 2.0.0"
+envoy = ">= 1.2.0 and < 2.0.0"
+
+[dev-dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
+glinter = ">= 2.16.0 and < 3.0.0"
+take = ">= 1.0.0 and < 2.0.0"
+
+[tools.glinter]
+stats = true
+
+[tools.glinter.rules]
+unused_exports = "off"
+ffi_usage = "error"
+function_complexity = "warning"
+module_complexity = "warning"
