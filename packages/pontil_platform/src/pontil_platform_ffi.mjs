@@ -18,6 +18,7 @@ import {
   Os$Darwin,
   Os$FreeBsd,
   Os$Linux,
+  Os$NetBsd,
   Os$OpenBsd,
   Os$OtherOs,
   Os$SunOs,
@@ -68,6 +69,8 @@ export function os() {
       return Os$FreeBsd();
     case "linux":
       return Os$Linux();
+    case "netbsd":
+      return Os$NetBsd();
     case "openbsd":
       return Os$OpenBsd();
     case "sunos":

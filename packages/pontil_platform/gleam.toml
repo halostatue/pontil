@@ -1,5 +1,5 @@
 name = "pontil_platform"
-version = "1.0.0"
+version = "1.0.1"
 description = "Cross-runtime platform detection for Gleam"
 licences = ["Apache-2.0"]
 gleam = ">= 1.14.0"
@@ -10,6 +10,27 @@ user = "halostatue"
 repo = "pontil"
 path = "pontil_platform"
 tag_prefix = "pontil_platform-"
+
+[[documentation.pages]]
+title = "Changelog"
+path = "changelog.html"
+source = "CHANGELOG.md"
+
+[[links]]
+title = "Licence"
+href = "https://github.com/halostatue/pontil/blob/main/LICENCE.md"
+[[links]]
+title = "Security"
+href = "https://github.com/halostatue/pontil/blob/main/SECURITY.md"
+[[links]]
+title = "Code of Conduct"
+href = "https://github.com/halostatue/pontil/blob/main/CODE_OF_CONDUCT.md"
+[[links]]
+title = "Contributing"
+href = "https://github.com/halostatue/pontil/blob/main/CONTRIBUTING.md"
+[[links]]
+title = "Sponsor"
+href = "https://github.com/sponsors/halostatue"
 
 [dependencies]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"

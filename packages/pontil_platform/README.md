@@ -59,7 +59,7 @@ Pontil platform follows [Semantic Versioning 2.0][semver].
 [docs]: https://hexdocs.pm/pontil_platform
 [gha-toolkit]: https://github.com/actions/toolkit
 [hexpm]: https://hex.pm/package/pontil_platform
-[licence]: https://github.com/halostatue/pontil/blob/main/pontil_platform/LICENCE.md
+[licence]: https://github.com/halostatue/pontil/blob/main/LICENCE.md
 [platform]: https://github.com/DitherWither/platform
 [pontil]: https://hexdocs.pm/pontil
 [semver]: https://semver.org/
