@@ -38,7 +38,7 @@ Pontil core follows [Semantic Versioning 2.0][semver].
 [docs]: https://hexdocs.pm/pontil_core
 [gha-toolkit]: https://github.com/actions/toolkit
 [hexpm]: https://hex.pm/package/pontil_core
-[licence]: https://github.com/halostatue/pontil/blob/main/pontil_core/LICENCE.md
+[licence]: https://github.com/halostatue/pontil/blob/main/LICENCE.md
 [pontil]: https://hexdocs.pm/pontil
 [semver]: https://semver.org/
 [shield-docs]: https://img.shields.io/badge/hex-docs-lightgreen.svg?style=for-the-badge "Hex Docs"
