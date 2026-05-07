@@ -14,7 +14,7 @@ import gleam/javascript/promise.{type Promise}
 import gleam/list
 import gleam/option.{type Option}
 import pontil/core
-import pontil/core/command
+import pontil/core/command as core_type
 import pontil/errors
 import pontil/internal/oidc
 import pontil/internal/utils
@@ -200,6 +200,15 @@ pub fn group(name name: String, do do: fn() -> a) -> a {
 pub fn group_async(name name: String, do do: fn() -> Promise(a)) -> Promise(a) {
   core.group_start(name)
   promise_finally(promise: do(), do: core.group_end)
+}
+
+/// Sets the action exit code.
+pub fn set_exit_code(value: ExitCode) -> Nil {
+  let value = case value {
+    Failure -> core_type.Failure
+    Success -> core_type.Success
+  }
+  core.set_exit_code(value)
 }
 
 /// Writes the message as an error to the log and sets the action status to
@@ -419,8 +428,8 @@ pub fn promise_finally(
 fn map_input_opts(opts: List(InputOptions)) -> List(core.InputOptions) {
   list.map(opts, fn(opt) {
     case opt {
-      InputRequired -> command.InputRequired
-      PreserveInputSpaces -> command.PreserveInputSpaces
+      InputRequired -> core_type.InputRequired
+      PreserveInputSpaces -> core_type.PreserveInputSpaces
     }
   })
 }
@@ -430,12 +439,12 @@ fn map_annotation_props(
 ) -> List(core.AnnotationProperties) {
   list.map(props, fn(prop) {
     case prop {
-      Title(v) -> command.Title(v)
-      File(v) -> command.File(v)
-      StartLine(v) -> command.StartLine(v)
-      EndLine(v) -> command.EndLine(v)
-      StartColumn(v) -> command.StartColumn(v)
-      EndColumn(v) -> command.EndColumn(v)
+      Title(v) -> core_type.Title(v)
+      File(v) -> core_type.File(v)
+      StartLine(v) -> core_type.StartLine(v)
+      EndLine(v) -> core_type.EndLine(v)
+      StartColumn(v) -> core_type.StartColumn(v)
+      EndColumn(v) -> core_type.EndColumn(v)
     }
   })
 }

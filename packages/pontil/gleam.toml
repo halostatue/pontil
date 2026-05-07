@@ -1,5 +1,5 @@
 name = "pontil"
-version = "1.0.0"
+version = "1.0.1"
 description = "A Gleam port of GitHub's actions/toolkit"
 licences = ["Apache-2.0"]
 target = "javascript"
