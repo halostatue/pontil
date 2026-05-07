@@ -1,6 +1,6 @@
 # pontil Changelog
 
-## NEXT / YYYY-MM-DD
+## 1.0.1 / 2026-05-07
 
 - Documentation and repo updates. The symlinks to the supporting tools have been
   removed from the directory and added as sidebar links to the root file in the
@@ -8,6 +8,8 @@
 
 - The Writing a GitHub Action guide has been updated to encourage the use of
   `pontil_build` in favour of direct `esgleam` usage.
+
+- Added the missing wrapper for `core.set_exit_code`.
 
 ## 1.0.0 / 2026-04-22
 
