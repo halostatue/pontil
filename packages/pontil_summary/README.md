@@ -27,6 +27,14 @@ pub fn main() {
 }
 ```
 
+## Function Portability
+
+All public functions are annotated as either `{portable}` or `{actions}`. The
+former are usable with any Gleam program while the latter assume that the Gleam
+program is being run in a GitHub Actions (or compatible) environment. For
+`pontil/summary`, only `summary.append`, `summary.overwrite`, and
+`summary.clear` are Actions-only.
+
 ## Semantic Versioning
 
 Pontil summary follows [Semantic Versioning 2.0][semver].

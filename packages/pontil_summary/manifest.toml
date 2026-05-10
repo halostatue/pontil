@@ -12,20 +12,20 @@ packages = [
   { name = "gleam_time", version = "1.8.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "gleam_time", source = "hex", outer_checksum = "533D8723774D61AD4998324F5DD1DABDCDBFABAFB9E87CB5D03C6955448FC97D" },
   { name = "gleeunit", version = "1.10.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "gleeunit", source = "hex", outer_checksum = "254B697FE72EEAD7BF82E941723918E421317813AC49923EE76A18C788C61E72" },
   { name = "glexer", version = "2.4.0", build_tools = ["gleam"], requirements = ["gleam_stdlib", "splitter"], otp_app = "glexer", source = "hex", outer_checksum = "5AB2401BF251699746B3551EF699ECC1D94FE2897C15041F181614B089125CA0" },
-  { name = "glinter", version = "2.15.0", build_tools = ["gleam"], requirements = ["argv", "glance", "gleam_json", "gleam_stdlib", "simplifile", "tom"], otp_app = "glinter", source = "hex", outer_checksum = "551033723DD0044D296EC79B9A14CB782BCC197C17683E3EAD85F6A01C83548C" },
-  { name = "pontil_core", version = "1.0.0", build_tools = ["gleam"], requirements = ["envoy", "gleam_stdlib", "pontil_platform", "simplifile", "youid"], otp_app = "pontil_core", source = "hex", outer_checksum = "F5F50042F91673C54A17CC5342680B52E1B0D33F024664B1DA0C7DC011B6693C" },
-  { name = "pontil_platform", version = "1.0.0", build_tools = ["gleam"], requirements = ["gleam_stdlib", "shellout"], otp_app = "pontil_platform", source = "hex", outer_checksum = "B7C731F77F380EAB162E704BE6C7280D1EB53AE003B811A59F385CA2D24B14A3" },
+  { name = "glinter", version = "2.18.0", build_tools = ["gleam"], requirements = ["argv", "glance", "gleam_json", "gleam_stdlib", "simplifile", "tom"], otp_app = "glinter", source = "hex", outer_checksum = "BE6167D6D7287F02C44D0B9B94370B2251AA8BF48F518F30F16DFE3BC92F2680" },
+  { name = "pontil_core", version = "2.0.0", build_tools = ["gleam"], requirements = ["envoy", "gleam_crypto", "gleam_stdlib", "pontil_platform", "simplifile"], otp_app = "pontil_core", source = "hex", outer_checksum = "4A1D7E926242B2749C9B9AD5DDB20C42F7DBA0DEC86EE2924AC88E24020DFC1B" },
+  { name = "pontil_platform", version = "1.0.1", build_tools = ["gleam"], requirements = ["gleam_stdlib", "shellout"], otp_app = "pontil_platform", source = "hex", outer_checksum = "B9A51960FD61BCA8D4B5F83733D4548CFE26B5694028B2F7C2AFAD56A1F65D4B" },
   { name = "shellout", version = "1.8.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "shellout", source = "hex", outer_checksum = "C416356D45151F298108C9DB9CD1EDE0313F620B5EDBB5766CD7237659D87841" },
   { name = "simplifile", version = "2.4.0", build_tools = ["gleam"], requirements = ["filepath", "gleam_stdlib"], otp_app = "simplifile", source = "hex", outer_checksum = "7C18AFA4FED0B4CE1FA5B0B4BAC1FA1744427054EA993565F6F3F82E5453170D" },
   { name = "splitter", version = "1.2.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "splitter", source = "hex", outer_checksum = "3DFD6B6C49E61EDAF6F7B27A42054A17CFF6CA2135FF553D0CB61C234D281DD0" },
-  { name = "tom", version = "2.0.2", build_tools = ["gleam"], requirements = ["gleam_stdlib", "gleam_time"], otp_app = "tom", source = "hex", outer_checksum = "234A842F3D087D35737483F5DFB6DE9839E3366EF0CAF8726D2D094210227670" },
-  { name = "youid", version = "1.6.0", build_tools = ["gleam"], requirements = ["gleam_crypto", "gleam_stdlib", "gleam_time"], otp_app = "youid", source = "hex", outer_checksum = "7A3ABA44B1B38BC2BDCB5474C5317AA372BE58DFBC649815EE08B03526DDA18D" },
+  { name = "tom", version = "2.1.0", build_tools = ["gleam"], requirements = ["gleam_stdlib", "gleam_time"], otp_app = "tom", source = "hex", outer_checksum = "DCF04CB7AB35D58CFC598C66EA2E1816D160759802C89B2BA6238780D59BC256" },
 ]
 
 [requirements]
+argv = { version = ">= 1.0.2 and < 2.0.0" }
 envoy = { version = ">= 1.1.0 and < 2.0.0" }
 gleam_stdlib = { version = ">= 0.44.0 and < 2.0.0" }
 gleeunit = { version = ">= 1.0.0 and < 2.0.0" }
 glinter = { version = ">= 2.15.0 and < 3.0.0" }
-pontil_core = { version = ">= 1.0.0 and < 2.0.0" }
+pontil_core = { version = ">= 2.0.0 and < 3.0.0" }
 simplifile = { version = ">= 2.2.0 and < 3.0.0" }
