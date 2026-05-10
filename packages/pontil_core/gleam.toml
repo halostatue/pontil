@@ -1,5 +1,5 @@
 name = "pontil_core"
-version = "1.0.0"
+version = "2.0.0"
 description = "Runtime independent GitHub Action tooling"
 licences = ["Apache-2.0"]
 gleam = ">= 1.14.0"
@@ -35,9 +35,9 @@ href = "https://github.com/sponsors/halostatue"
 [dependencies]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
 envoy = ">= 1.1.0 and < 2.0.0"
-youid = ">= 1.5.1 and < 2.0.0"
 simplifile = ">= 2.2.0 and < 3.0.0"
 pontil_platform = ">= 1.0.0 and < 2.0.0"
+gleam_crypto = ">= 1.6.0 and < 2.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
@@ -48,11 +48,14 @@ take = ">= 1.0.0 and < 2.0.0"
 stats = true
 
 [tools.glinter.rules]
-unused_exports = "off"
 ffi_usage = "error"
 function_complexity = "warning"
 module_complexity = "warning"
 
+[tools.glinter.ignore]
+"src/pontil_core_ffi.mjs" = ["ffi_usage"]
+
 [javascript.deno]
 allow_env = true
+allow_write = ["test/_temp"]
 allow_read = ["gleam.toml", "test"]

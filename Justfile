@@ -1,5 +1,5 @@
 pkg_dir := "packages"
-packages := `fd . -td -d1 packages | sed -e 's.packages/..g' -e 's./..g' | tr '\n' ' '`
+packages := `find packages -type d -depth 1 | sed 's.packages/..g' | tr '\n' ' '`
 
 _default:
     just --list
@@ -40,7 +40,7 @@ deps *args="download":
 
 # Run choire against the monorepo
 @choire:
-    just {{ pkg_dir }}/pontil/choire
+    cd {{ pkg_dir }}/pontil && gleam run -m choire ..
 
 # Test pontil_platform's platform-info output
 @platform-info TARGET="all":
@@ -51,7 +51,7 @@ deps *args="download":
 dev-check:
     #!/usr/bin/env bash
     set -euo pipefail
-    if grep -rn 'path = "\.\.' {{ pkg_dir }}/*/gleam.toml; then
+    if grep -rn 'path = "\.\.' {{ pkg_dir }}/*/gleam.toml {{ pkg_dir }}/*/manifest.toml; then
       echo "ERROR: path dependencies found. Run 'just dev-end' before committing."
       exit 1
     fi
@@ -71,11 +71,8 @@ dev-start:
     for pkg in {{ packages }}; do
       for pkg_name in {{ packages }}; do
         replace {{ pkg_dir }}/"${pkg}"/gleam.toml "${pkg_name}" "../${pkg_name}"
+        replace {{ pkg_dir }}/"${pkg}"/manifest.toml "${pkg_name}" "../${pkg_name}"
       done
-
-      # replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_platform '../pontil_platform'
-      # replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_core     '../pontil_core'
-      # replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_summary  '../pontil_summary'
     done
 
     echo "Switched to path deps for local development."
@@ -93,13 +90,12 @@ dev-end:
     }
 
     for pkg in {{ packages }}; do
-      for pkg_name in {{ packages }}; do
-        replace {{ pkg_dir }}/"${pkg}"/gleam.toml "${pkg_name}" '>= 2.0.0 and < 2.0.0'
-      done
-
-      # replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_platform '>= 1.0.0 and < 2.0.0'
-      # replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_core     '>= 1.0.0 and < 2.0.0'
-      # replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_summary  '>= 1.0.0 and < 2.0.0'
+      replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_platform '>= 1.0.0 and < 2.0.0'
+      replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_core     '>= 2.0.0 and < 2.0.0'
+      replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_summary  '>= 1.0.0 and < 2.0.0'
+      replace {{ pkg_dir }}/"${pkg}"/manifest.toml pontil_platform '>= 1.0.0 and < 2.0.0'
+      replace {{ pkg_dir }}/"${pkg}"/manifest.toml pontil_core     '>= 2.0.0 and < 2.0.0'
+      replace {{ pkg_dir }}/"${pkg}"/manifest.toml pontil_summary  '>= 1.0.0 and < 2.0.0'
     done
 
     echo "Restored version constraints for publishing."

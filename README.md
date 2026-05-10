@@ -14,8 +14,16 @@ independently to [Hex][hex]:
 | [`pontil_platform`][platform] | Runtime, OS, and architecture detection  | Erlang, JavaScript |
 | [`pontil_summary`][summary]   | Job summary builder                      | Erlang, JavaScript |
 
-Most users should depend on `pontil` directly. The sub-packages exist for use
-cases that don't need the full toolkit or need Erlang target support.
+Most people building GitHub Actions should depend on `pontil` directly. The
+sub-packages exist for use cases that don't need the full toolkit or need Erlang
+target support.
+
+Functions in pontil packages are marked with `{actions}` or `{portable}` tags.
+Functions tagged `{actions}` _only_ work meaningfully in a GitHub Actions
+environment (they depend on variables set by GitHub Actions runners and/or
+output to files managed by runners). Functions tagged `{portable}` may be used
+in any environment, although output configuration may be required (see
+`set_output`) and they may perform additional work in a GitHub Actions runner.
 
 ## Development
 

@@ -3,4 +3,5 @@
 build/
 erl_crash.dump
 src/platform_info.gleam
-*/test/_temp/
+test/_temp/
+!test/_temp/.keep
