@@ -1,5 +1,55 @@
 # pontil Changelog
 
+## 2.0.0 / 2026-05-11
+
+### Breaking Changes
+
+Internal refactoring has removed `pontil/errors` and two internal modules. This
+will _mostly_ affect pattern matching on `pontil.PontilError` variants instead
+of `pontil/errors.PontilError` variants.
+
+### Function Portability and Output Mode
+
+All public functions are annotated as either `{portable}` or `{actions}`. The
+former are usable with any Gleam program while the latter assume that the Gleam
+program is being run in a GitHub Actions (or compatible) environment.
+
+Portable logging functions (`notice`, etc.) will output in GitHub actions format
+_unless_ the output mode has changed. This can be managed with the new
+`set_output_mode` function and the constructors `action_mode` (the default,
+issues GitHub Actions commands), `plaintext_mode` (prefixed plaintext logging),
+and `ansi_mode` (ANSI coloured logging).
+
+Some functions like `set_secret`, `export_variable`, and `add_path` have extra
+behaviour when running under GitHub Actions, but perform their normal operation
+otherwise.
+
+### New Features
+
+- Exposed output mode configuration with `set_output_mode`, making pontil
+  logging functions more useful for non-action environments. The default
+  behaviour is GitHub Actions output mode. Three built-in mode constructors are
+  also provided: `action_mode`, `plaintext_mode`, and `ansi_mode`.
+
+- Extended `set_secret` and added `set_secrets` to keep track of values that
+  should be masked. This will allow secrets to be automatically masked with
+  non-GitHub Actions output modes.
+
+- Added `mask_secrets` to permit secret masking directly.
+
+- Added `in_actions` function so consumers of `pontil/core` can determine
+  whether they are running under GitHub Actions or not.
+
+- Added `env_get_nonempty` function that returns an `Option` value of the
+  environment variable only if it is not an empty `""` value.
+
+- `try_promise` has been renamed to `try_sync`; the old name remains with a
+  deprecation warning.
+
+### Documentation
+
+- Updated documentation and added a new guide on best practices.
+
 ## 1.0.1 / 2026-05-07
 
 - Documentation and repo updates. The symlinks to the supporting tools have been

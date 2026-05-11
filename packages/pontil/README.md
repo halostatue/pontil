@@ -12,7 +12,7 @@ Actions in Gleam for JavaScript targets.
 ## Installation
 
 ```sh
-gleam add pontil@1
+gleam add pontil@2
 ```
 
 ```gleam
@@ -20,7 +20,40 @@ import pontil
 
 pub fn main() {
   let name = pontil.get_input("name") // Reads INPUT_NAME
+
   pontil.info("Hello, " <> name <> "!")
+  let assert Ok(_) = pontil.set_output(name: "greeting", value: "Hello, " <> name)
+}
+```
+
+## Function Portability and Output Mode
+
+All public functions are annotated as either `{portable}` or `{actions}`. The
+former are usable with any Gleam program while the latter assume that the Gleam
+program is being run in a GitHub Actions (or compatible) environment.
+
+Portable logging functions (`notice`, etc.) will output in GitHub actions format
+_unless_ the output mode has changed. This can be managed with the new
+`set_output_mode` function and the constructors `action_mode` (the default,
+issues GitHub Actions commands), `plaintext_mode` (prefixed plaintext logging),
+and `ansi_mode` (ANSI coloured logging).
+
+Some functions like `set_secret`, `export_variable`, and `add_path` have extra
+behaviour when running under GitHub Actions, but perform their normal operation
+otherwise.
+
+```gleam
+import pontil/core
+
+pub fn main() {
+  core.set_output_mode(core.plaintext_mode())
+  core.info("Running locally")
+  // Running locally
+
+  let secret = core.set_secret("my voice is my passport")
+
+  core.debug("This shows as [DEBUG] in the terminal: " <> secret)
+  // [DEBUG] This shows as [DEBUG] in the terminal: ***
 }
 ```
 

@@ -3,8 +3,7 @@ import gleam/javascript/promise
 import gleam/string
 import gleeunit
 import pontil
-import pontil/core/command
-import pontil/errors
+import pontil/core
 import simplifile
 import take
 import take_promise
@@ -16,6 +15,7 @@ pub fn main() {
 
 fn clean_last_run() {
   let _ = simplifile.delete("test/_temp")
+  envoy.unset("GITHUB_ACTIONS")
   envoy.unset("INPUT_MY_INPUT")
   envoy.unset("INPUT_MULTIPLE_SPACES_VARIABLE")
   envoy.unset("INPUT_WITH_TRAILING_WHITESPACE")
@@ -95,7 +95,7 @@ pub fn get_input_opts_required_present_test() {
 
 pub fn get_input_opts_required_missing_test() {
   use <- with_env([])
-  assert Error(errors.CoreError(command.MissingRequiredInput("missing")))
+  assert Error(pontil.CoreError(core.MissingRequiredInput("missing")))
     == pontil.get_input_opts("missing", [pontil.InputRequired])
 }
 
@@ -134,7 +134,7 @@ pub fn get_boolean_input_false_values_test() {
 
 pub fn get_boolean_input_invalid_value_test() {
   use <- with_env([#("INPUT_WRONG", "wrong")])
-  assert Error(errors.CoreError(command.InvalidBooleanInput("wrong")))
+  assert Error(pontil.CoreError(core.InvalidBooleanInput("wrong")))
     == pontil.get_boolean_input("wrong")
 }
 
@@ -192,6 +192,7 @@ pub fn export_variable_file_command_test() {
   let file = dir <> "/ENV"
   let assert Ok(Nil) = simplifile.write(file, "")
   envoy.set("GITHUB_ENV", file)
+  envoy.set("GITHUB_ACTIONS", "true")
 
   let assert Ok(Nil) = pontil.export_variable("my_var", "var_val")
 
@@ -232,6 +233,7 @@ pub fn add_path_file_command_test() {
   let assert Ok(Nil) = simplifile.write(file, "")
   envoy.set("GITHUB_PATH", file)
   envoy.set("PATH", "/usr/bin")
+  envoy.set("GITHUB_ACTIONS", "true")
 
   let assert Ok(Nil) = pontil.add_path("/my/path")
 
@@ -395,15 +397,15 @@ pub fn group_async_preserves_return_value_test() {
   })
 }
 
-pub fn try_promise_ok_continues_test() {
-  pontil.try_promise(Ok("hello"), fn(v) { promise.resolve(Ok(v <> " world")) })
+pub fn try_sync_ok_continues_test() {
+  pontil.try_sync(Ok("hello"), fn(v) { promise.resolve(Ok(v <> " world")) })
   |> promise.map(fn(result) {
     assert Ok("hello world") == result
   })
 }
 
-pub fn try_promise_error_short_circuits_test() {
-  pontil.try_promise(Error("nope"), fn(_) {
+pub fn try_sync_error_short_circuits_test() {
+  pontil.try_sync(Error("nope"), fn(_) {
     promise.resolve(Ok("should not reach"))
   })
   |> promise.map(fn(result) {

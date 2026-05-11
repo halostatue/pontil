@@ -6,8 +6,8 @@ deliberately stays out of your concurrency story. You compose pontil into your
 action's runtime; it doesn't take control away from you.
 
 This guide walks through building a JavaScript-target GitHub Action using
-pontil, based on patterns from [starlist][starlist], a real-world action built
-with pontil.
+pontil, based on patterns from [starlist][starlist] and [actions-dco][dco],
+real-world actions built with pontil.
 
 ## Prerequisites
 
@@ -18,7 +18,7 @@ with pontil.
 
 ## Project Setup
 
-### gleam.toml
+### `gleam.toml`
 
 Your action project should only target JavaScript, as GitHub Actions run on
 Node.
@@ -32,7 +32,7 @@ target = "javascript"
 envoy = ">= 1.1.0 and < 2.0.0"
 gleam_javascript = ">= 1.0.0 and < 2.0.0"
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
-pontil = ">= 1.0.0 and < 2.0.0"
+pontil = ">= 2.0.0 and < 3.0.0"
 
 [dev-dependencies]
 pontil_build = ">= 1.0.0 and < 2.0.0"
@@ -48,7 +48,7 @@ Key dependencies:
   action runner, configured entirely through `gleam.toml`
 
 > **Alternative:** If you prefer a more general-purpose bundler,
-> [esgleam][esgleam] can also be used.
+> [esgleam][esgleam] also works.
 
 ### `action.yml`
 
@@ -86,13 +86,13 @@ step on the runner.
 
 ## Project Structure
 
-A typical pontil action has this layout:
+A pontil action has this layout:
 
 ```
 src/
   my_feature.gleam         # Library entry point
   my_feature_action.gleam  # Action entry point (what GitHub runs)
-  my_feature_js.gleam      # JS CLI entry point
+  my_feature_js.gleam      # JS CLI entry point (optional)
 dist/
   my_feature.cjs           # Bundled output (committed)
 action.yml                 # Action metadata
@@ -105,11 +105,13 @@ and `my_feature_action.gleam` (action) is intentional. The CLI entry point lets
 you test your logic locally without the GitHub Actions environment. The action
 entry point wires everything through `pontil`'s logging and output commands.
 
+The CLI entry point is optional but valuable, as it lets you exercise your
+action's core logic with real inputs outside of a GitHub Actions runner.
+
 ## The Bundler
 
 `pontil_build` produces a single-file CommonJS bundle that Node can run
-directly. Unlike esgleam, there's no build script to write — configuration lives
-in `gleam.toml`:
+directly. Configuration lives in `gleam.toml`:
 
 ```toml
 [tools.pontil_build.bundle]
@@ -121,16 +123,16 @@ entry = "my_feature_action.gleam"
 
 Run it with `gleam run -m pontil_build` after building your project.
 
-To install esbuild separately (useful for CI caching):
+To install `esbuild` separately (useful for CI caching):
 
 ```sh
 gleam run -m pontil_build/install
 ```
 
 <details>
-<summary>Using esgleam instead</summary>
+<summary>Using `esgleam` instead</summary>
 
-If you prefer esgleam, replace `pontil_build` with `esgleam` in your
+If you prefer `esgleam`, replace `pontil_build` with `esgleam` in your
 dev-dependencies:
 
 ```toml
@@ -169,19 +171,24 @@ If your action doesn't need to make HTTP requests or do other async work, it can
 be straightforward:
 
 ```gleam
+import gleam/result
 import pontil
 
 pub fn main() -> Nil {
-  let name = pontil.get_input("name")
-
-  case validate(name) {
-    Ok(result) -> {
-      pontil.info("Success: " <> result)
-      let assert Ok(_) = pontil.set_output("result", result)
-      Nil
-    }
-    Error(msg) -> pontil.set_failed(msg)
+  case run() {
+    Ok(Nil) -> Nil
+    Error(message) -> pontil.set_failed(message)
   }
+
+  Nil
+}
+
+fn run() -> Result(Nil, String) {
+  use message <- result.try(pontil.get_input("name") |> validate)
+
+  pontil.info("Success: " <> message)
+  pontil.set_output("message", message)
+  |> result.map_error(pontil.describe_error)
 }
 
 fn validate(name: String) -> Result(String, String) {
@@ -226,22 +233,23 @@ pub fn main() -> Nil {
 
 fn run() -> Promise(Result(Nil, String)) {
   // 1. Read config (sync — just reads env vars)
-  use config <- pontil.try_promise(read_config())
+  use config <- pontil.try_sync(read_config())
 
   // 2. Fetch data (async — HTTP request)
   use data <- promise.try_await(fetch_data(config))
 
   // 3. Process results (sync — pure computation)
-  use output <- pontil.try_promise(process(data))
+  use output <- pontil.try_sync(process(data))
 
   // 4. Write output (sync)
-  use _ <- pontil.try_promise(pontil.set_output("result", output))
-
-  promise.resolve(Ok(Nil))
+  pontil.try_sync(
+    pontil.set_output("result", output)
+    |> result.map_error(pontil.describe_error)
+  )
 }
 ```
 
-`pontil.try_promise` is glue between sync and async for `use`. It lets you call
+`pontil.try_sync` is glue between sync and async for `use`. It lets you call
 synchronous functions that return `Result` inside a `promise.try_await` chain
 without wrapping them in `promise.resolve` at every call site.
 
@@ -265,7 +273,8 @@ pontil.register_process_handlers(
 )
 ```
 
-Call either at the top of your `main()` before starting any async work.
+Call either at the top of your `main()` before starting any async work. While
+not required, registering handlers is strongly recommended.
 
 ## Using Pontil
 
@@ -293,7 +302,7 @@ let items = pontil.get_multiline_input("items")
 
 ```gleam
 pontil.info("Informational message")     // Plain stdout
-pontil.debug("Debug details")            // Only visible with ACTIONS_STEP_DEBUG
+pontil.debug("Debug details")            // Only visible debug mode enabled
 pontil.warning("Something looks off")    // Warning annotation
 pontil.error("Something broke")          // Error annotation
 pontil.set_failed("Fatal: shutting down") // Sets exit code to 1 + error annotation
@@ -405,6 +414,26 @@ let info = platform.details()
 and detects the runtime (Node, Deno, Bun, Erlang) in addition to OS and
 architecture.
 
+### Workflow Context
+
+Workflow context is provided by [`pontil_context`][pontil_context]. This
+provides basic information about the action name, the run ID, and the git ref
+that triggered the run. Action event data can be loaded and converted on demand
+for several common event types: pull requests, issues, comments, pushes, and
+more.
+
+```gleam
+let ctx = context.new()
+use pr <- result.try(context.load_event(
+  event_name: ctx.event_name,
+  converter: context.event_to_pull_request,
+))
+let base_sha = pr.pull_request.base.sha
+let head_sha = pr.pull_request.head.sha
+```
+
+[`pontil_context`][pontil_context] supports both Erlang and JavaScript targets.
+
 ### Job Summaries
 
 Job summaries require the [`pontil_summary`][pontil_summary] package:
@@ -448,9 +477,9 @@ boundary:
 
 ```gleam
 import pontil
-import pontil/errors
 
 pub type MyError {
+  PontilError(pontil.PontilError)
   ConfigError(message: String)
   ApiError(message: String)
   FileError(message: String)
@@ -463,7 +492,7 @@ fn resolve_config() -> Result(Config, MyError) {
       Ok(Config(token: t))
     }
     Error(e) ->
-      Error(ConfigError("Missing token: " <> pontil.describe_error(e)))
+      Error(PontilError(e))
   }
 }
 ```
@@ -499,9 +528,23 @@ those steps before `gleam build`:
 The workflow is: generate → format → compile → bundle. The bundled output in
 `dist/` gets committed so the action is ready to run when cloned.
 
+> CI Tip: Add a `dist/` check to your main CI workflow to catch cases where
+> source code was updated but `dist/` was not. After running the build in CI,
+> verify that no files have been changed:
+>
+> ```yaml
+> - name: Check dist/ is up to date
+>   run: |
+>     if (( "$(git diff --text dist/ | wc -l)" -gt 0 )); then
+>       echo "dist/ is out of date. Build the action locally and commit.
+>       git diff --text dist/
+>       exit 1
+>     fi
+> ```
+
 ## Local Testing
 
-The `just action` pattern from starlist is worth stealing. It creates a scratch
+The `just action` pattern from starlist is worth reusing. It creates a scratch
 directory, copies in the bundle, and runs it with `node`:
 
 ```just
@@ -517,7 +560,7 @@ action: build
 
     cp -r dist "$SCRATCH"
     cd "$SCRATCH"
-    node dist/my_feature.js
+    node dist/my_feature.cjs
 ```
 
 Set inputs as `INPUT_<NAME>` environment variables:
@@ -526,13 +569,15 @@ Set inputs as `INPUT_<NAME>` environment variables:
 INPUT_TOKEN=$(gh auth token) INPUT_CONFIG="inline toml" just action
 ```
 
-[starlist]: https://github.com/halostatue/starlist
-[gleam]: https://gleam.run
-[node]: https://nodejs.org
-[gha-docs]: https://docs.github.com/en/actions
-[job-summaries]: https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#adding-a-job-summary
 [cog]: https://hexdocs.pm/cog
+[dco]: https://github.com/KineticCafe/actions-dco
 [esgleam]: https://hexdocs.pm/esgleam
+[gha-docs]: https://docs.github.com/en/actions
+[gleam]: https://gleam.run
+[job-summaries]: https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#adding-a-job-summary
+[node]: https://nodejs.org
+[pontil_context]: https://hexdocs.pm/pontil_context
 [pontil_platform]: https://hexdocs.pm/pontil_platform
 [pontil_summary]: https://hexdocs.pm/pontil_summary
 [squall]: https://hexdocs.pm/squall
+[starlist]: https://github.com/halostatue/starlist
