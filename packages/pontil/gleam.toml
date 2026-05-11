@@ -17,6 +17,10 @@ title = "Writing a GitHub Action"
 path = "writing-a-github-action.html"
 source = "guides/writing-a-github-action.md"
 [[documentation.pages]]
+title = "Best Practices"
+path = "best-practices.html"
+source = "guides/best-practices.md"
+[[documentation.pages]]
 title = "Differences with @actions/toolkit"
 path = "differences-with-toolkit.html"
 source = "guides/differences-with-toolkit.md"
@@ -49,7 +53,7 @@ gleam_javascript = ">= 1.0.0 and < 2.0.0"
 gleam_json = ">= 3.1.0 and < 4.0.0"
 gleam_fetch = ">= 1.4.0 and < 2.0.0"
 gleam_http = ">= 4.3.0 and < 5.0.0"
-pontil_core = ">= 1.0.0 and < 2.0.0"
+pontil_core = ">= 2.0.0 and < 3.0.0"
 pontil_platform = ">= 1.0.0 and < 2.0.0"
 
 [dev-dependencies]
@@ -64,10 +68,10 @@ take_promise = ">= 1.0.0 and < 2.0.0"
 stats = true
 
 [tools.glinter.rules]
-unused_exports = "off"
 ffi_usage = "error"
 function_complexity = "warning"
 module_complexity = "warning"
+unused_exports = "off"
 
 [tools.glinter.ignore]
 "src/pontil/internal/**/*.gleam" = ["label_possible"]

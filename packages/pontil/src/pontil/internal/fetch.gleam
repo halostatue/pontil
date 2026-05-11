@@ -4,12 +4,11 @@
 //// `pontil/internal/http/request.HttpRequest`.
 
 import gleam/dynamic.{type Dynamic}
-import gleam/fetch
+import gleam/fetch.{type FetchError}
 import gleam/http/request as http_request
 import gleam/http/response.{type Response}
 import gleam/javascript/promise.{type Promise}
 import gleam/option.{None, Some}
-import pontil/errors.{type PontilError}
 import pontil/internal/http/request.{type HttpRequest, NoRetries, Retry}
 
 /// Send an `HttpRequest(String)` and return the raw `Response(FetchBody)`.
@@ -18,7 +17,7 @@ import pontil/internal/http/request.{type HttpRequest, NoRetries, Retry}
 /// status codes (502, 503, 504) with exponential backoff.
 pub fn send(
   req: HttpRequest(String),
-) -> Promise(Result(Response(fetch.FetchBody), PontilError)) {
+) -> Promise(Result(Response(fetch.FetchBody), FetchError)) {
   let max_attempts = case req.options.retry_policy {
     NoRetries -> 1
     Retry(max_attempts:) ->
@@ -33,31 +32,27 @@ pub fn send(
 /// Send a request and read the response body as a string.
 pub fn send_text(
   req: HttpRequest(String),
-) -> Promise(Result(Response(String), PontilError)) {
+) -> Promise(Result(Response(String), FetchError)) {
   use resp <- promise.try_await(send(req))
   fetch.read_text_body(resp)
-  |> promise.map(map_fetch_error)
 }
 
 /// Send a request and read the response body as parsed JSON (`Dynamic`).
 pub fn send_json(
   req: HttpRequest(String),
-) -> Promise(Result(Response(Dynamic), PontilError)) {
+) -> Promise(Result(Response(Dynamic), FetchError)) {
   let req = set_json_headers(req)
   use resp <- promise.try_await(send(req))
   fetch.read_json_body(resp)
-  |> promise.map(map_fetch_error)
 }
 
 fn send_loop(
   req: HttpRequest(String),
   max_attempts: Int,
   attempt: Int,
-) -> Promise(Result(Response(fetch.FetchBody), PontilError)) {
+) -> Promise(Result(Response(fetch.FetchBody), FetchError)) {
   let inner = apply_auth(req)
-  use result <- promise.try_await(
-    fetch.send(inner) |> promise.map(map_fetch_error),
-  )
+  use result <- promise.try_await(fetch.send(inner))
   let status = result.status
   case request.is_retriable_status(status) && attempt + 1 < max_attempts {
     True -> {
@@ -78,15 +73,6 @@ fn apply_auth(req: HttpRequest(String)) -> http_request.Request(String) {
 fn set_json_headers(req: HttpRequest(String)) -> HttpRequest(String) {
   req
   |> request.set_header("accept", "application/json")
-}
-
-fn map_fetch_error(
-  result: Result(a, fetch.FetchError),
-) -> Result(a, PontilError) {
-  case result {
-    Ok(value) -> Ok(value)
-    Error(err) -> Error(errors.FetchError(err))
-  }
 }
 
 /// Exponential backoff: 5ms * 2^attempt, capped at attempt 10.

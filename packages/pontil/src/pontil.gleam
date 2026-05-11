@@ -9,19 +9,25 @@
 ////
 //// [tk1]: https://github.com/actions/toolkit
 
+import gleam/dynamic/decode
 import gleam/fetch
 import gleam/javascript/promise.{type Promise}
 import gleam/list
-import gleam/option.{type Option}
+import gleam/option.{type Option, None, Some}
+import gleam/result
 import pontil/core
-import pontil/core/command as core_type
-import pontil/errors
-import pontil/internal/oidc
-import pontil/internal/utils
+import pontil/internal/fetch as pontil_fetch
+import pontil/internal/http/request.{Retry}
 
 /// Errors returned by pontil functions.
-pub type PontilError =
-  errors.PontilError
+pub type PontilError {
+  /// An error raised from pontil/core.
+  CoreError(error: core.PontilCoreError)
+  /// A fetch (HTTP) operation failed.
+  FetchError(error: fetch.FetchError)
+  /// The OIDC token response did not contain a token value.
+  OidcTokenMissing
+}
 
 /// Optional properties that can be sent with output annotation commands
 /// (`notice`, `error`, and `warning`). See [create a check run][ty1] for more
@@ -63,15 +69,20 @@ pub type ExitCode {
   Failure
   /// A code indicating that the action was successful (0).
   Success
+  /// An exit code option for more complex values. This should not be used
+  /// when using `pontil` to write GitHub actions, but may be used when using
+  /// `pontil` to write command-line utilities.
+  Exit(Int)
 }
 
 /// Returns a human-readable description of a pontil error.
+///
+/// `{portable}`
 pub fn describe_error(error: PontilError) -> String {
   case error {
-    errors.CoreError(error) -> core.describe_error(error)
-    errors.OidcTokenMissing ->
-      "OIDC token response did not contain a token value"
-    errors.FetchError(error) -> describe_fetch_error(error)
+    CoreError(error) -> core.describe_error(error)
+    OidcTokenMissing -> "OIDC token response did not contain a token value"
+    FetchError(error) -> describe_fetch_error(error)
   }
 }
 
@@ -87,15 +98,19 @@ fn describe_fetch_error(error: fetch.FetchError) -> String {
 /// [specification][gbi1]. Supported boolean values are `true`, `True`, `TRUE`,
 /// `false`, `False`, or `FALSE`.
 ///
+/// `{actions}`
+///
 /// [gbi1]: https://yaml.org/spec/1.2/spec.html#id2804923
 pub fn get_boolean_input(name: String) -> Result(Bool, PontilError) {
   core.get_boolean_input(name)
-  |> utils.map_core_error
+  |> result.map_error(CoreError)
 }
 
 /// Gets the input value of the boolean type in the YAML 1.2 "core schema"
 /// [specification][gbiwo1]. Supported boolean values are `true`, `True`,
 /// `TRUE`, `false`, `False`, or `FALSE`.
+///
+/// `{actions}`
 ///
 /// [gbiwo1]: https://yaml.org/spec/1.2/spec.html#id2804923
 pub fn get_boolean_input_opts(
@@ -103,49 +118,66 @@ pub fn get_boolean_input_opts(
   opts opts: List(InputOptions),
 ) -> Result(Bool, PontilError) {
   core.get_boolean_input_opts(name:, opts: map_input_opts(opts))
-  |> utils.map_core_error
+  |> result.map_error(CoreError)
 }
 
 /// Gets a GitHub Action input value with default options.
+///
+/// `{actions}`
 pub fn get_input(name: String) -> String {
   core.get_input(name)
 }
 
 /// Gets a GitHub Action input value with provided options.
+///
+/// `{actions}`
 pub fn get_input_opts(
   name name: String,
   opts opts: List(InputOptions),
 ) -> Result(String, PontilError) {
   core.get_input_opts(name:, opts: map_input_opts(opts))
-  |> utils.map_core_error
+  |> result.map_error(CoreError)
 }
 
 /// Gets the values of a multiline input with default options. Each value is
 /// also trimmed.
+///
+/// `{actions}`
 pub fn get_multiline_input(name: String) -> List(String) {
   core.get_multiline_input(name)
 }
 
 /// Gets the values of a multiline input with provided options.
+///
+/// `{actions}`
 pub fn get_multiline_input_opts(
   name name: String,
   opts opts: List(InputOptions),
 ) -> Result(List(String), PontilError) {
   core.get_multiline_input_opts(name:, opts: map_input_opts(opts))
-  |> utils.map_core_error
+  |> result.map_error(CoreError)
 }
 
 /// Gets whether Actions Step Debug is on or not
+///
+/// `{actions}`
 pub fn is_debug() -> Bool {
   core.is_debug()
 }
 
-/// Registers a secret which will get masked from logs
+/// Registers a secret which will be masked from logs.
 ///
-/// This function instructs the Actions runner to mask the specified value in
-/// any logs produced during the workflow run. Once registered, the secret value
-/// will be replaced with asterisks (***) whenever it appears in console output,
-/// logs, or error messages.
+/// Returns the input value so it can be used as the last expression in a
+/// pipeline:
+///
+/// ```gleam
+/// Ok(set_secret("mypassword")) // => Ok("mypassword")
+/// ```
+///
+/// In a GitHub Actions runner, a command is emitted to mask the specified value
+/// in any logs produced during the workflow run. Once registered, the secret
+/// value will be replaced with asterisks (`***`) whenever it appears in console
+/// output, logs, or error messages.
 ///
 /// This is useful for protecting sensitive information such as:
 ///
@@ -157,19 +189,28 @@ pub fn is_debug() -> Bool {
 /// Note that masking only affects future logs; any previous appearances of the
 /// secret in logs before calling this function will remain unmasked.
 ///
-/// > For security purposes, if the environment variable `GITHUB_ACTIONS` is not
-/// > `"true"`, the actual secret will not be printed as it is likely that the
-/// > action is being tested outside of GitHub Actions.
+/// Outside of GitHub Actions, secrets may be masked with `mask_secrets`.
 ///
-/// Because Gleam returns the last expression, this function returns the input
-/// value so that if it is the last expression in your function that returns
-/// a secret value, you may set the secret and return it in one value.
-///
-/// ```gleam
-/// Ok(set_secret("mypassword")) // => Ok("mypassword")
-/// ```
+/// `{portable}`
 pub fn set_secret(secret: String) -> String {
   core.set_secret(secret)
+}
+
+/// Registers multiple secrets which will be masked from logs. See `set_secret`
+/// for more details.
+///
+/// Returns the input values.
+///
+/// `{portable}`
+pub fn set_secrets(values: List(String)) -> List(String) {
+  core.set_secrets(values)
+}
+
+/// Replaces all registered secret values in the given text with `***`.
+///
+/// `{portable}`
+pub fn mask_secrets(text: String) -> String {
+  core.mask_secrets(text)
 }
 
 /// Begin an output group.
@@ -177,6 +218,8 @@ pub fn set_secret(secret: String) -> String {
 /// Output until the next `group_end` will be foldable in this group.
 ///
 /// This is called `startGroup` in actions/core.
+///
+/// `{portable}`
 pub fn group_start(name: String) -> Nil {
   core.group_start(name)
 }
@@ -184,6 +227,8 @@ pub fn group_start(name: String) -> Nil {
 /// End an output group.
 ///
 /// This is called `endGroup` in actions/core.
+///
+/// `{portable}`
 pub fn group_end() -> Nil {
   core.group_end()
 }
@@ -191,22 +236,33 @@ pub fn group_end() -> Nil {
 /// Wraps an action function in an output group, returning the same type as the
 /// function itself. This variant should *not* be used with functions returning
 /// promises, as the group is likely to be ended before the function executes.
+///
+/// `{portable}`
 pub fn group(name name: String, do do: fn() -> a) -> a {
   core.group(name:, do:)
 }
 
 /// Wraps an async action function in an output group, returning the same type
 /// as the function itself.
-pub fn group_async(name name: String, do do: fn() -> Promise(a)) -> Promise(a) {
-  core.group_start(name)
-  promise_finally(promise: do(), do: core.group_end)
+///
+/// `{portable}`
+pub fn group_async(
+  name name: String,
+  do action: fn() -> Promise(a),
+) -> Promise(a) {
+  let output_mode = core.get_output_mode()
+  output_mode.group_start(name)
+  promise_finally(promise: action(), do: output_mode.group_end)
 }
 
 /// Sets the action exit code.
+///
+/// `{portable}`
 pub fn set_exit_code(value: ExitCode) -> Nil {
   let value = case value {
-    Failure -> core_type.Failure
-    Success -> core_type.Success
+    Failure -> core.Failure
+    Success -> core.Success
+    Exit(value) -> core.Exit(value)
   }
   core.set_exit_code(value)
 }
@@ -215,11 +271,15 @@ pub fn set_exit_code(value: ExitCode) -> Nil {
 /// failed.
 ///
 /// When the action exits it will have an exit code of 1.
+///
+/// `{portable}`
 pub fn set_failed(message: String) -> Nil {
   core.set_failed(message)
 }
 
 /// Writes info to log.
+///
+/// `{portable}`
 pub fn info(message: String) -> Nil {
   core.info(message)
 }
@@ -228,6 +288,8 @@ pub fn info(message: String) -> Nil {
 ///
 /// Debug messages are visible in an action runner only when Action Step Debug
 /// is enabled.
+///
+/// `{portable}`
 pub fn debug(message: String) -> Nil {
   core.debug(message)
 }
@@ -236,16 +298,22 @@ pub fn debug(message: String) -> Nil {
 /// step.
 ///
 /// Disabled by default unless Action Step Debug is enabled.
+///
+/// `{actions}`
 pub fn set_command_echo(enabled: Bool) -> Nil {
   core.set_command_echo(enabled)
 }
 
 /// Adds an error issue.
+///
+/// `{portable}`
 pub fn error(message: String) -> Nil {
   core.error(message)
 }
 
 /// Adds an error issue with annotation options.
+///
+/// `{portable}`
 pub fn error_annotation(
   msg msg: String,
   props props: List(AnnotationProperties),
@@ -254,11 +322,15 @@ pub fn error_annotation(
 }
 
 /// Adds a warning issue
+///
+/// `{portable}`
 pub fn warning(message: String) -> Nil {
   core.warning(message)
 }
 
 /// Adds a warning issue with annotation options.
+///
+/// `{portable}`
 pub fn warning_annotation(
   msg msg: String,
   props props: List(AnnotationProperties),
@@ -267,11 +339,15 @@ pub fn warning_annotation(
 }
 
 /// Adds a notice issue.
+///
+/// `{portable}`
 pub fn notice(message: String) -> Nil {
   core.notice(message)
 }
 
 /// Adds a notice issue with annotation options.
+///
+/// `{portable}`
 pub fn notice_annotation(
   msg msg: String,
   props props: List(AnnotationProperties),
@@ -280,24 +356,30 @@ pub fn notice_annotation(
 }
 
 /// Sets env variable for this action and future actions in the job.
+///
+/// `{portable}`
 pub fn export_variable(
   name name: String,
   value value: String,
 ) -> Result(Nil, PontilError) {
   core.export_variable(name:, value:)
-  |> utils.map_core_error
+  |> result.map_error(CoreError)
 }
 
 /// Prepends `input_path` to the PATH (for this action and future actions).
+///
+/// `{portable}`
 pub fn add_path(input_path: String) -> Result(Nil, PontilError) {
   core.add_path(input_path)
-  |> utils.map_core_error
+  |> result.map_error(CoreError)
 }
 
 /// Sets the value of an output for passing values between steps or jobs.
 ///
 /// See [Passing job outputs][so1], [`steps` context][so2], and
 /// [`outputs` for JavaScript actions][so3].
+///
+/// `{actions}`
 ///
 /// [so1]: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/pass-job-outputs
 /// [so2]: https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#steps-context
@@ -307,7 +389,7 @@ pub fn set_output(
   value value: String,
 ) -> Result(Nil, PontilError) {
   core.set_output(name:, value:)
-  |> utils.map_core_error
+  |> result.map_error(CoreError)
 }
 
 /// Saves state for current action, the state can only be retrieved by this
@@ -315,18 +397,22 @@ pub fn set_output(
 ///
 /// See [Sending values to the pre and post actions][ss1].
 ///
+/// `{actions}`
+///
 /// [ss1]: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands?versionId=free-pro-team%40latest&productId=actions&restPage=reference%2Cworkflows-and-actions%2Ccontexts#sending-values-to-the-pre-and-post-actions
 pub fn save_state(
   name name: String,
   value value: String,
 ) -> Result(Nil, PontilError) {
   core.save_state(name:, value:)
-  |> utils.map_core_error
+  |> result.map_error(CoreError)
 }
 
 /// Gets the value of an state set by this action's main execution.
 ///
 /// See [Sending values to the pre and post actions][gs1].
+///
+/// `{actions}`
 ///
 /// [gs1]: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands?versionId=free-pro-team%40latest&productId=actions&restPage=reference%2Cworkflows-and-actions%2Ccontexts#sending-values-to-the-pre-and-post-actions
 pub fn get_state(name: String) -> String {
@@ -337,6 +423,8 @@ pub fn get_state(name: String) -> String {
 /// replaced with `/`.
 ///
 /// If possible, prefer using the `filepath` library.
+///
+/// `{portable}`
 pub fn to_posix_path(path: String) -> String {
   core.to_posix_path(path)
 }
@@ -345,6 +433,8 @@ pub fn to_posix_path(path: String) -> String {
 /// replaced with `\\`.
 ///
 /// If possible, prefer using the `filepath` library.
+///
+/// `{portable}`
 pub fn to_win32_path(path: String) -> String {
   core.to_win32_path(path)
 }
@@ -353,15 +443,72 @@ pub fn to_win32_path(path: String) -> String {
 /// replacing instances of `/` and `\\` with the platform-specific path separator.
 ///
 /// If possible, prefer using the `filepath` library.
+///
+/// `{portable}`
 pub fn to_platform_path(path: String) -> String {
   core.to_platform_path(path)
 }
 
+/// Return `True` if running inside of a GitHub Actions runner.
+///
+/// `{portable}`
+pub fn in_actions() -> Bool {
+  core.in_actions()
+}
+
+/// Sets the `OutputMode` for a program using pontil/core.
+///
+/// If not specified, the default is the GitHub Actions output mode. The output
+/// mode may be changed at any time. It is recommended that this be selected as
+/// early possible.
+///
+/// `{portable}`
+pub fn set_output_mode(mode: core.OutputMode) -> Nil {
+  core.set_output_mode(mode)
+}
+
+/// The default mode that emits GitHub Actions workflow commands.
+///
+/// `{actions}`
+pub fn action_mode() -> core.OutputMode {
+  core.action_mode()
+}
+
+/// A plaintext mode that formats output as readable text without
+/// workflow command syntax.
+///
+/// `{portable}`
+pub fn plaintext_mode() -> core.OutputMode {
+  core.plaintext_mode()
+}
+
+/// An ANSI-colored mode for terminal output.
+///
+/// `{portable}`
+pub fn ansi_mode() -> core.OutputMode {
+  core.ansi_mode()
+}
+
+/// Returns the value of an environment variable if it is set and non-empty.
+///
+/// `{portable}`
+pub fn env_get_nonempty(name: String) -> Option(String) {
+  core.env_get_nonempty(name)
+}
+
 /// Returns a GitHub OIDC token for the provided audience.
+///
+/// `{actions}`
 pub fn get_id_token(
   audience: Option(String),
 ) -> Promise(Result(String, PontilError)) {
-  oidc.get_id_token(audience)
+  use id_token_url <- try_sync(get_id_token_url())
+
+  core.debug("ID token url is " <> id_token_url)
+
+  use id_token <- promise.try_await(call_get_id_token(id_token_url, audience))
+
+  promise.resolve(Ok(core.set_secret(id_token)))
 }
 
 /// Register handlers for `uncaughtException` and `unhandledRejection` on the
@@ -379,6 +526,8 @@ pub fn get_id_token(
 ///
 /// The rejection or exception will be converted to a string and passed to the
 /// appropriate handler function function.
+///
+/// `{portable}`
 @external(javascript, "./pontil_ffi.mjs", "registerProcessHandlers")
 pub fn register_process_handlers(
   exception exception_fn: fn(String) -> Nil,
@@ -395,6 +544,8 @@ pub fn register_process_handlers(
 ///   // ...
 /// }
 /// ```
+///
+/// `{portable}`
 pub fn register_default_process_handlers() -> Nil {
   register_process_handlers(exception: set_failed, promise: set_failed)
 }
@@ -407,16 +558,29 @@ pub fn register_default_process_handlers() -> Nil {
 ///
 /// ```gleam
 /// fn run() -> Promise(Result(Nil, PontilError)) {
-///   use token <- pontil.try_promise(get_token())
+///   use token <- pontil.try_sync(get_token())
 ///   use resp <- promise.try_await(fetch_data(token))
 ///   promise.resolve(Ok(Nil))
 /// }
 /// ```
+///
+/// `{portable}`
+pub fn try_sync(
+  result value: Result(a, e),
+  next next: fn(a) -> Promise(Result(b, e)),
+) -> Promise(Result(b, e)) {
+  case value {
+    Ok(v) -> next(v)
+    Error(e) -> promise.resolve(Error(e))
+  }
+}
+
+@deprecated("Use try_sync instead")
 pub fn try_promise(
   result result: Result(a, e),
   next next: fn(a) -> Promise(Result(b, e)),
 ) -> Promise(Result(b, e)) {
-  utils.try_promise(result:, next:)
+  try_sync(result:, next:)
 }
 
 @external(javascript, "./pontil_ffi.mjs", "promiseFinally")
@@ -428,8 +592,8 @@ pub fn promise_finally(
 fn map_input_opts(opts: List(InputOptions)) -> List(core.InputOptions) {
   list.map(opts, fn(opt) {
     case opt {
-      InputRequired -> core_type.InputRequired
-      PreserveInputSpaces -> core_type.PreserveInputSpaces
+      InputRequired -> core.InputRequired
+      PreserveInputSpaces -> core.PreserveInputSpaces
     }
   })
 }
@@ -439,12 +603,76 @@ fn map_annotation_props(
 ) -> List(core.AnnotationProperties) {
   list.map(props, fn(prop) {
     case prop {
-      Title(v) -> core_type.Title(v)
-      File(v) -> core_type.File(v)
-      StartLine(v) -> core_type.StartLine(v)
-      EndLine(v) -> core_type.EndLine(v)
-      StartColumn(v) -> core_type.StartColumn(v)
-      EndColumn(v) -> core_type.EndColumn(v)
+      Title(v) -> core.Title(v)
+      File(v) -> core.File(v)
+      StartLine(v) -> core.StartLine(v)
+      EndLine(v) -> core.EndLine(v)
+      StartColumn(v) -> core.StartColumn(v)
+      EndColumn(v) -> core.EndColumn(v)
     }
   })
+}
+
+fn call_get_id_token(
+  id_token_url: String,
+  audience: Option(String),
+) -> Promise(Result(String, PontilError)) {
+  use req <- try_sync(create_id_token_request(id_token_url, audience))
+  use resp <- promise.try_await(
+    pontil_fetch.send_json(req)
+    |> promise.map(result.map_error(_, FetchError)),
+  )
+
+  let decoder = {
+    use value <- decode.field("value", decode.optional(decode.string))
+    decode.success(value)
+  }
+  case decode.run(resp.body, decoder) {
+    Ok(Some(token)) -> promise.resolve(Ok(token))
+    _ -> promise.resolve(Error(OidcTokenMissing))
+  }
+}
+
+fn create_id_token_request(
+  url: String,
+  audience: Option(String),
+) -> Result(request.HttpRequest(String), PontilError) {
+  use token <- result.try(get_request_token())
+  case request.to(url) {
+    Ok(req) -> {
+      let req = case audience {
+        None -> req
+        Some(aud) -> {
+          let query = request.get_query(req) |> result.unwrap([])
+          request.set_query(req, list.append(query, [#("audience", aud)]))
+        }
+      }
+
+      req
+      |> request.set_bearer_auth(token)
+      |> request.set_retry_policy(Retry(max_attempts: 10))
+      |> Ok
+    }
+    Error(Nil) -> missing_env_var("Invalid OIDC token URL")
+  }
+}
+
+fn get_id_token_url() -> Result(String, PontilError) {
+  case core.env_get_nonempty("ACTIONS_ID_TOKEN_REQUEST_URL") {
+    Some(url) -> Ok(url)
+    None -> missing_env_var("ACTIONS_ID_TOKEN_REQUEST_URL")
+  }
+}
+
+fn get_request_token() -> Result(String, PontilError) {
+  case core.env_get_nonempty("ACTIONS_ID_TOKEN_REQUEST_TOKEN") {
+    Some(token) -> Ok(token)
+    None -> missing_env_var("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
+  }
+}
+
+fn missing_env_var(name: String) -> Result(a, PontilError) {
+  core.MissingEnvVar(name)
+  |> Error
+  |> result.map_error(CoreError)
 }

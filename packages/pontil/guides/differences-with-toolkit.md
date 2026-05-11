@@ -1,31 +1,27 @@
 # Differences with @actions/toolkit
 
 Pontil is a port of GitHub's [actions/toolkit][toolkit] to Gleam, not a clone.
-This guide documents intentional differences in API design, naming, and
-behaviour.
+It now incorporates functionality that makes it easier to run both under GitHub
+Actions runners and in other environments. This guide documents intentional
+differences in API design, naming, and behaviour.
 
 ## General Principles
 
 Gleam conventions win over strict compatibility for pontil, and if a Gleam
 library provides _most_ of the functionality of a GitHub Actions toolkit
-library, the existing library wins.
+library, the existing library will be recommended unless there is specific
+GitHub Actions functionality required.
 
-- There are no optional parameters or default value parameters in Gleam function
-  definitions. When there are optional parameters that are rarely specified,
-  there are now two functions. The shorter name always provides some default
-  values.
+- Gleam does not support optional parameters, default value, or function
+  overloads. When a TypeScript function provides optional parameters that are
+  rarely used, pontil defines two functions where the shorter name provides
+  usable default values.
 
-- There are no exceptions; `Result(a, PontilError)` is returned when we know a
-  path can throw an exception.
+- Gleam does not support exceptions, and pontil returns `Result(a, PontilError)`
+  when a known exception path is present.
 
 - Deprecated functionality is not implemented. For `pontil/summary`, the
-  deprecated name `markdownSummary` has not been implemented.
-
-- Minimal reexports from submodules. `@actions/core` exports `core.summary` from
-  `@actions/core/summary`. Pontil does not. To work with the action summary,
-  `gleam add pontil_summary@1` and use [`pontil_summary`][pontil_summary]. Types
-  such as `InputOptions`, `AnnotationProperties`, and `ExitCode` are defined
-  directly on the `pontil` module with their constructors available for import.
+  deprecated function name `markdownSummary` has not been implemented.
 
 - Promises are used when required, not just because they are used in actions
   code. If there is a choice available, the promise variation will be suffixed
@@ -78,6 +74,18 @@ library, the existing library wins.
   pontil.export_variable(value: "1", name: "MY_VAR")
   ```
 
+- Pontil chooses developer experience over strict Gleam practice or conformance
+  with the `actions/toolkit` interfaces.
+
+  It is _unusual_ for a Gleam library to reexport functions and defined mapped
+  from another Gleam library, but `pontil` reexports all of `pontil/core` so
+  that the action developer experience is more consistent. Rather than writing
+  `core.debug` and `pontil.group_async`, both are called with `pontil.debug` and
+  `pontil.group_async`.
+
+  Conversely, summary table support is part of `@actions/core`, but is available
+  as [`pontil_summary`][pontil_summary] (`gleam add pontil_summary@1`).
+
 ## pontil
 
 The `pontil` module implements the functionality of `@actions/core` and a little
@@ -101,7 +109,7 @@ more.
 | `getState(name)`                    | `get_state(name)`                        |
 | `group(name, fn)`                   | `group(name:, do:)`                      |
 |                                     | `group_async(name:, do:)`                |
-| `info(message)`                     | `info(message)`[^1]                      |
+| `info(message)`                     | `info(message)`                          |
 | `isDebug()`                         | `is_debug()`                             |
 | `notice(message, properties?)`      | `notice(message)`                        |
 |                                     | `notice_annotation(msg:, props:)`        |
@@ -119,26 +127,45 @@ more.
 
 There are also some additions:
 
-- `try_promise(result, next)`: Lifts a sync `Result` into a `Promise` chain. The
-  glue between sync and async in action pipelines.
-- `register_process_handlers(exception:, promise:)`: Registers
-  `uncaughtException` and `unhandledRejection` handlers with custom callbacks.
+- `try_sync(result, next)`: Lifts a sync `Result` into a `Promise` chain. The
+  glue between sync and async in action pipelines. The following two examples
+  are roughly equivalent:
+
+  ```gleam
+  use foo <- pontil.try_sync(sync_function())
+  use foo <- promise.try_await(sync_function() |> promise.resolve)
+  ```
+
+- `set_secrets(values)` marks multiple values as secrets.
+
+- `mask_secrets(text)` replaces registered secrets with `***`. This is used
+  automatically by the pontil logging functions when using the plaintext or ANSI
+  output modes.
+
+- `register_process_handlers(exception, promise)`: Registers `uncaughtException`
+  and `unhandledRejection` handlers with custom callbacks.
+
 - `register_default_process_handlers()`: Opinionated variant: wires handlers to
   `pontil.set_failed`.
+
 - `describe_error(error)`: Converts a `PontilError` to a human-readable string.
 
-Platform detection (`core.platform.*`) from `@actions/core` has been extracted
-into a separate package, [`pontil_platform`][pontil_platform]
-(`gleam add pontil_platform@1`), imported as `pontil/platform` and supporting
-both Erlang and JavaScript targets and detects the runtime environment (Node,
-Deno, Bun, Erlang).
+- `in_actions()` checks whether the action is running in a GitHub Actions
+  runner.
 
-Similarly, job summary support has been extracted into a separate package,
-[`pontil_summary`][pontil_summary] (`gleam add pontil_summary@1`).
+- `env_get_nonempty(name)` returns the value of an environment variable if it is
+  present and not an empty string.
 
-[^1]: `pontil.info` exists only for consistency. Just as `core.info` calls
-    `console.log` in JavaScript, `pontil.info` calls `io.println`. No more, no
-    less.
+The addition of output mode support to `pontil` (`set_output_mode(mode)` and the
+constructors `action_mode`, `plaintext_mode`, and `ansi_mode`) has changed how
+the output functions work in positive ways.
+
+Platform detection (`core.platform.*`) and job summary support (`core.summary`)
+are separate packages, [`pontil_platform`][pontil_platform]
+(`gleam add pontil_platform@1`) and [`pontil_summary`][pontil_summary]
+(`gleam add pontil_summary@1`).
+
+Portions of `actions/github` have been ported as `pontil_context`.
 
 ## Packages with Gleam Alternatives
 
@@ -162,9 +189,9 @@ are suitable Gleam alternatives.
 - `action/cache`
 - `action/tool-cache`
 
-A partial implementation of `action/http-client` has been implemented as an
-_internal_ module in pontil, but the API is not stable enough to make it public.
-This also prevents the port of `action/github`.
+A partial implementation of `action/http-client` has been implemented as
+_internal_ modules in pontil, but the API is not stable enough to make it
+public.
 
 [filepath]: https://hexdocs.pm/filepath
 [fio]: https://hexdocs.pm/fio
