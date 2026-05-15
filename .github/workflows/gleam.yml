@@ -73,7 +73,6 @@ jobs:
             **/build
 
       - run: just dev-check
-      - run: just dev-start
 
       - name: Deps pontil_platform
         run: gleam deps download
