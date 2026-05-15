@@ -62,18 +62,15 @@ dev-start:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    replace() {
-      local file="$1" pkg="$2" path="$3"
-      sed -i.bak "s|${pkg} = \".*\"|${pkg} = { path = \"${path}\" }|" "$file"
-      rm -f "${file}.bak"
-    }
-
     for pkg in {{ packages }}; do
-      for pkg_name in {{ packages }}; do
-        replace {{ pkg_dir }}/"${pkg}"/gleam.toml "${pkg_name}" "../${pkg_name}"
-        replace {{ pkg_dir }}/"${pkg}"/manifest.toml "${pkg_name}" "../${pkg_name}"
+      for dep in {{ packages }}; do
+        sed -i.bak "s|${dep} = \"[^\"]*\"|${dep} = { path = \"../${dep}\" }|" \
+          {{ pkg_dir }}/"${pkg}"/gleam.toml
+        rm -f {{ pkg_dir }}/"${pkg}"/gleam.toml.bak
       done
     done
+
+    just deps
 
     echo "Switched to path deps for local development."
 
@@ -83,19 +80,22 @@ dev-end:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    replace() {
-      local file="$1" pkg="$2" version="$3"
-      sed -i.bak "s|${pkg} = { path = \"[^\"]*\" }|${pkg} = \"${version}\"|" "$file"
-      rm -f "${file}.bak"
-    }
+    declare -A constraints
 
     for pkg in {{ packages }}; do
-      replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_platform '>= 1.0.0 and < 2.0.0'
-      replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_core     '>= 2.0.0 and < 2.0.0'
-      replace {{ pkg_dir }}/"${pkg}"/gleam.toml pontil_summary  '>= 1.0.0 and < 2.0.0'
-      replace {{ pkg_dir }}/"${pkg}"/manifest.toml pontil_platform '>= 1.0.0 and < 2.0.0'
-      replace {{ pkg_dir }}/"${pkg}"/manifest.toml pontil_core     '>= 2.0.0 and < 2.0.0'
-      replace {{ pkg_dir }}/"${pkg}"/manifest.toml pontil_summary  '>= 1.0.0 and < 2.0.0'
+      version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' {{ pkg_dir }}/"${pkg}"/gleam.toml)
+      major="${version%%.*}"
+      next=$(( major + 1 ))
+      constraints["${pkg}"]=">= ${major}.0.0 and < ${next}.0.0"
+    done
+
+    for pkg in {{ packages }}; do
+      for dep in {{ packages }}; do
+        constraint="${constraints[${dep}]}"
+        sed -i.bak "s|${dep} = { path = \"[^\"]*\" }|${dep} = \"${constraint}\"|" \
+          {{ pkg_dir }}/"${pkg}"/gleam.toml
+        rm -f {{ pkg_dir }}/"${pkg}"/gleam.toml.bak
+      done
     done
 
     echo "Restored version constraints for publishing."
