@@ -27,7 +27,6 @@ packages = [
   { name = "take", version = "1.0.1", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "take", source = "hex", outer_checksum = "F6C740C6F2C66B66B4DC34EA183519CF7ADEA5CC201B108ACD346B92E1C22548" },
   { name = "take_promise", version = "1.0.0", build_tools = ["gleam"], requirements = ["gleam_javascript", "gleam_stdlib"], otp_app = "take_promise", source = "hex", outer_checksum = "B295A43ACFFB3D91DFA6995B0B2BC862B2F37EF00473F19C57EA41F97537BD86" },
   { name = "tom", version = "2.1.0", build_tools = ["gleam"], requirements = ["gleam_stdlib", "gleam_time"], otp_app = "tom", source = "hex", outer_checksum = "DCF04CB7AB35D58CFC598C66EA2E1816D160759802C89B2BA6238780D59BC256" },
-  { name = "youid", version = "1.6.0", build_tools = ["gleam"], requirements = ["gleam_crypto", "gleam_stdlib", "gleam_time"], otp_app = "youid", source = "hex", outer_checksum = "7A3ABA44B1B38BC2BDCB5474C5317AA372BE58DFBC649815EE08B03526DDA18D" },
 ]
 
 [requirements]
@@ -45,4 +44,3 @@ pontil_platform = { version = ">= 1.0.0 and < 2.0.0" }
 simplifile = { version = ">= 2.4.0 and < 3.0.0" }
 take = { version = ">= 1.0.0 and < 2.0.0" }
 take_promise = { version = ">= 1.0.0 and < 2.0.0" }
-youid = { version = ">= 1.5.1 and < 2.0.0" }
